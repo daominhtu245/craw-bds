@@ -56,3 +56,16 @@ Tất cả endpoint cần header `Authorization: Bearer $INGEST_TOKEN` và bị 
 - `reply_drafts` có thêm cột `variant` (`public_reply` / `dm`, SPEC 12).
 - Che SĐT/email làm ngay từ Phase 1, vì CLAUDE.md cấm lưu dữ liệu thô.
 - Phase 2: chạy `ListingMatcher` trước `LeadScorer`, vì điểm lead phụ thuộc kết quả khớp căn.
+- AI: dùng `tool_choice: auto` + `strict: true` thay vì ép `tool_choice` (Claude Sonnet 5.5 trả 400 khi ép). Không gọi tool thì hỏi lại 1 lần. Schema bỏ `minimum/maximum/maxLength` (strict không hỗ trợ), kiểm tra ở PHP (`Classification`).
+- AI: API version `2026-10-21`, không gửi `temperature`. Model trong `AI_FALLBACK_MODELS` (mặc định Sonnet/Opus) được bật server-side refusal fallback (`fallbacks: "default"`).
+- Prefilter `lang_vi`: tỷ lệ tính theo **từ** có dấu tiếng Việt (> 30%), không theo ký tự (văn bản tiếng Việt thuần chỉ ~25% ký tự có dấu).
+- "Keyword dương mạnh" = keyword có `weight ≥ 2`.
+
+## Phase 2 — pipeline
+
+`ingest → PrefilterItemJob (queue prefilter) → ClassifyItemJob (queue ai) → LeadClassifier → ListingMatcher → LeadScorer → NotifyLeadJob (queue notify)`
+
+```bash
+docker compose exec app php artisan leadradar:eval          # gọi AI thật, cần ANTHROPIC_API_KEY
+docker compose exec app php artisan leadradar:eval --limit=10
+```

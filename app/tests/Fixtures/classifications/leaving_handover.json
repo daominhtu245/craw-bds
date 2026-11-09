@@ -1,0 +1,15 @@
+{
+  "intent": "leaving_handover",
+  "confidence": 0.9,
+  "language": "en",
+  "stage": "unknown",
+  "arrival_date": null,
+  "duration_months": null,
+  "property_type": "2br",
+  "bedrooms_min": 2,
+  "areas_mentioned": ["Son Tra"],
+  "budget": {"min": null, "max": 550, "currency": "USD", "period": "month", "raw": "550$/month"},
+  "household": null,
+  "requirements": [],
+  "summary_vi": "Khách sắp rời VN, cần người thuê lại căn 2PN ở Sơn Trà, 550$/tháng"
+}

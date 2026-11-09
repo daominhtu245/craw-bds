@@ -1,0 +1,15 @@
+{
+  "intent": "tenant_demand",
+  "confidence": 0.93,
+  "language": "en",
+  "stage": "pre_arrival",
+  "arrival_date": "2026-12-01",
+  "duration_months": 6,
+  "property_type": "1br",
+  "bedrooms_min": 1,
+  "areas_mentioned": ["An Thuong"],
+  "budget": {"min": null, "max": 450, "currency": "USD", "period": "month", "raw": "450$"},
+  "household": "couple with a cat",
+  "requirements": ["pet_friendly", "kitchen", "jacuzzi"],
+  "summary_vi": "Cặp đôi đến 01/12, thuê 6 tháng căn 1PN ở An Thượng, ≤ 450$, nuôi mèo"
+}

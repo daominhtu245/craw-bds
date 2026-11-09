@@ -1,0 +1,15 @@
+{
+  "intent": "tenant_demand",
+  "confidence": 0.45,
+  "language": "en",
+  "stage": "unknown",
+  "arrival_date": null,
+  "duration_months": null,
+  "property_type": "unknown",
+  "bedrooms_min": null,
+  "areas_mentioned": [],
+  "budget": null,
+  "household": null,
+  "requirements": [],
+  "summary_vi": "Không rõ có phải nhu cầu thuê nhà hay không"
+}

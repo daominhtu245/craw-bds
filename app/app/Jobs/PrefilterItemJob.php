@@ -2,16 +2,17 @@
 
 namespace App\Jobs;
 
+use App\Enums\RawItemStatus;
+use App\Models\RawItem;
+use App\Services\Prefilter\Prefilter;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Rule-based prefilter (SPEC 8).
- *
- * Phase 1 only wires the pipeline: ingest dispatches this job on the
- * "prefilter" queue. The filtering rules are implemented in Phase 2.
+ * Rule-based prefilter (SPEC 8). Only items still in status "new" are processed,
+ * so re-running the job is a no-op.
  */
 class PrefilterItemJob implements ShouldBeUnique, ShouldQueue
 {
@@ -29,8 +30,31 @@ class PrefilterItemJob implements ShouldBeUnique, ShouldQueue
         return (string) $this->rawItemId;
     }
 
-    public function handle(): void
+    public function handle(Prefilter $prefilter): void
     {
-        Log::debug('prefilter.pending_phase2', ['item_id' => $this->rawItemId, 'job' => 'PrefilterItemJob']);
+        $item = RawItem::query()->find($this->rawItemId);
+
+        if ($item === null || $item->status !== RawItemStatus::New) {
+            return;
+        }
+
+        $result = $prefilter->check($item);
+
+        $item->forceFill([
+            'language' => $result->language,
+            'status' => $result->passed() ? RawItemStatus::Queued : RawItemStatus::FilteredOut,
+            'filter_reason' => $result->reason,
+        ])->save();
+
+        Log::info('prefilter.done', [
+            'job' => 'PrefilterItemJob',
+            'item_id' => $item->id,
+            'source' => $item->source_id,
+            'reason' => $result->reason?->value ?? 'passed',
+        ]);
+
+        if ($result->passed()) {
+            ClassifyItemJob::dispatch($item->id);
+        }
     }
 }

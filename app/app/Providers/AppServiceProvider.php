@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Prefilter\LanguageDetector;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -14,7 +15,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(LanguageDetector::class, fn () => new LanguageDetector(
+            (float) config('leadradar.prefilter.vi_word_ratio'),
+        ));
     }
 
     /**

@@ -1,0 +1,15 @@
+{
+  "intent": "landlord_offer",
+  "confidence": 0.97,
+  "language": "en",
+  "stage": "unknown",
+  "arrival_date": null,
+  "duration_months": 6,
+  "property_type": "studio",
+  "bedrooms_min": 0,
+  "areas_mentioned": ["My Khe"],
+  "budget": null,
+  "household": null,
+  "requirements": [],
+  "summary_vi": "Chủ nhà cho thuê studio ở Mỹ Khê"
+}

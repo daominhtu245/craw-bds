@@ -1,0 +1,15 @@
+{
+  "intent": "tenant_demand",
+  "confidence": 0.88,
+  "language": "ru",
+  "stage": "in_city_searching",
+  "arrival_date": null,
+  "duration_months": 6,
+  "property_type": "2br",
+  "bedrooms_min": 2,
+  "areas_mentioned": ["Ми Кхе", "somewhere unknown"],
+  "budget": {"min": 13000000, "max": 18200000, "currency": "VND", "period": "month", "raw": "13-18,2 млн донгов"},
+  "household": null,
+  "requirements": ["workspace"],
+  "summary_vi": "Khách Nga đang ở Đà Nẵng tìm căn 2PN ở Mỹ Khê, thuê 6 tháng, 500–700$"
+}
