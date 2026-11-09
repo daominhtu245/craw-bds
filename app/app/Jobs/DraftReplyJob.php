@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\RespectsAiBudget;
 use App\Models\Lead;
 use App\Services\Ai\ReplyDrafter;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 class DraftReplyJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
+    use RespectsAiBudget;
 
     public int $tries = 3;
 
@@ -39,6 +41,10 @@ class DraftReplyJob implements ShouldBeUnique, ShouldQueue
         $lead = Lead::query()->find($this->leadId);
 
         if ($lead === null || (! $this->force && $lead->replyDrafts()->exists())) {
+            return;
+        }
+
+        if ($this->pauseIfOverBudget()) {
             return;
         }
 

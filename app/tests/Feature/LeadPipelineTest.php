@@ -10,6 +10,7 @@ use App\Models\Lead;
 use App\Models\RawItem;
 use App\Services\Ai\LeadClassifier;
 use App\Services\Leads\LeadProcessor;
+use App\Services\Notify\QuietHours;
 use App\Services\Notify\TelegramNotifier;
 use App\Services\Prefilter\Prefilter;
 use Database\Seeders\DatabaseSeeder;
@@ -138,14 +139,14 @@ class LeadPipelineTest extends TestCase
             ->push(['ok' => true]);
 
         try {
-            (new NotifyLeadJob($lead->id))->handle(app(TelegramNotifier::class));
+            (new NotifyLeadJob($lead->id))->handle(app(TelegramNotifier::class), app(QuietHours::class));
             $this->fail('Expected failure');
         } catch (\RuntimeException) {
             $this->assertNull($lead->fresh()->notified_at);
         }
 
-        (new NotifyLeadJob($lead->id))->handle(app(TelegramNotifier::class));
-        (new NotifyLeadJob($lead->id))->handle(app(TelegramNotifier::class));
+        (new NotifyLeadJob($lead->id))->handle(app(TelegramNotifier::class), app(QuietHours::class));
+        (new NotifyLeadJob($lead->id))->handle(app(TelegramNotifier::class), app(QuietHours::class));
 
         $this->assertNotNull($lead->fresh()->notified_at);
         Http::assertSentCount(2);

@@ -2,7 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Enums\LeadStage;
 use App\Models\Lead;
+use App\Services\Notify\QuietHours;
 use App\Services\Notify\TelegramNotifier;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -34,8 +36,16 @@ class NotifyLeadJob implements ShouldBeUnique, ShouldQueue
         return (string) $this->leadId;
     }
 
-    public function handle(TelegramNotifier $notifier): void
+    public function handle(TelegramNotifier $notifier, QuietHours $quietHours): void
     {
+        // Quiet hours: keep the lead for the digest, except urgent leads (SPEC 13).
+        if ($quietHours->isQuiet()) {
+            $lead = Lead::query()->find($this->leadId);
+            if ($lead === null || $lead->stage !== LeadStage::Urgent) {
+                return;
+            }
+        }
+
         $claimed = Lead::query()->whereKey($this->leadId)->whereNull('notified_at')->update(['notified_at' => now()]);
 
         if ($claimed === 0) {

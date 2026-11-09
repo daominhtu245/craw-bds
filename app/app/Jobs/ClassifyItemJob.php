@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\RawItemStatus;
+use App\Jobs\Concerns\RespectsAiBudget;
 use App\Models\RawItem;
 use App\Services\Ai\ClaudeException;
 use App\Services\Ai\LeadClassifier;
@@ -20,6 +21,7 @@ use Throwable;
 class ClassifyItemJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
+    use RespectsAiBudget;
 
     public int $tries = 3;
 
@@ -43,6 +45,10 @@ class ClassifyItemJob implements ShouldBeUnique, ShouldQueue
         $item = RawItem::query()->find($this->rawItemId);
 
         if ($item === null || $item->status !== RawItemStatus::Queued) {
+            return;
+        }
+
+        if ($this->pauseIfOverBudget()) {
             return;
         }
 

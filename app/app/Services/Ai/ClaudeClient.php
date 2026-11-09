@@ -18,6 +18,8 @@ use Illuminate\Support\Sleep;
  */
 class ClaudeClient
 {
+    public function __construct(private readonly AiBudget $budget) {}
+
     /**
      * Ask the model to call exactly one tool and return its input.
      *
@@ -112,7 +114,14 @@ class ClaudeClient
             }
 
             if ($response->successful()) {
-                return (array) $response->json();
+                $message = (array) $response->json();
+                $this->budget->record(
+                    (string) ($message['model'] ?? $payload['model']),
+                    (int) data_get($message, 'usage.input_tokens', 0),
+                    (int) data_get($message, 'usage.output_tokens', 0),
+                );
+
+                return $message;
             }
 
             if ($this->isRetryable($response) && $attempt < $maxRetries) {

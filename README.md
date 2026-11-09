@@ -82,3 +82,11 @@ docker compose exec app php artisan leadradar:eval --limit=10
 - Bản nháp trả lời: bấm vào nội dung để copy, dán và trả lời **thủ công** tại bài gốc, rồi bấm "Đã trả lời" để ghi vào lịch sử. Hệ thống không bao giờ tự gửi.
 - Chuyển sang "Mất khách" hoặc "Không hợp lệ" bắt buộc nhập ghi chú.
 - Lưu ý khi viết code Filament: tham số closure phải đặt đúng tên (`$query`, `$data`, `$record`, `$state`, `$get`), vì Filament inject theo tên.
+
+## Phase 4–6
+
+- Collectors (Telegram, Facebook/Apify, Expat.com): xem [collectors/README.md](collectors/README.md).
+- Triển khai VPS và vận hành: xem [docs/DEPLOY.md](docs/DEPLOY.md).
+- Scheduler: `leadradar:retention` (03:00 hằng ngày), `leadradar:health` và `leadradar:quiet-digest` (mỗi 5 phút).
+- Nguồn "Quan trọng" (bật trong form Nguồn): cảnh báo nếu 24 giờ không có item mới.
+- Xóa theo yêu cầu: **Dữ liệu thô → Xóa dữ liệu theo người đăng** (chỉ admin).

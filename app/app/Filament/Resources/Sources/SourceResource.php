@@ -8,7 +8,6 @@ use App\Filament\Resources\Sources\Pages\ManageSources;
 use App\Models\Source;
 use BackedEnum;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -51,7 +50,8 @@ class SourceResource extends Resource
                     ->helperText('Telegram: username hoặc ID chat. Facebook/Forum: URL.'),
                 TextInput::make('language_hint')->label('Ngôn ngữ chính')->maxLength(8)->placeholder('en, ru…'),
                 Textarea::make('rules_note')->label('Luật của group (hiển thị cho sale)')->rows(3)->columnSpanFull(),
-                KeyValue::make('meta')->label('Cấu hình riêng')->columnSpanFull(),
+                TextInput::make('meta.maxItems')->label('Số bài tối đa mỗi lần (Facebook)')->numeric()->minValue(1)->maxValue(500),
+                Toggle::make('meta.important')->label('Quan trọng: cảnh báo nếu 24 giờ không có item mới'),
                 Toggle::make('is_active')->label('Đang bật')->default(true),
             ]);
     }
