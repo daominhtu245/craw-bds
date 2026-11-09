@@ -56,6 +56,30 @@ services:
       test: ["CMD", "healthcheck-schedule"]
       start_period: 15s
 
+  # ---------------------------------------------------------------- collectors
+  # `docker compose run --rm collectors pytest`
+  collectors:
+    build:
+      context: ./collectors
+    image: expat-lead-radar-collectors:local
+    profiles: ["tools"]
+    env_file: .env
+    command: ["python", "-m", "pytest", "-q"]
+
+  collector-telegram:
+    image: expat-lead-radar-collectors:local
+    build:
+      context: ./collectors
+    env_file: .env
+    environment:
+      SPOOL_DIR: /data/spool/telegram
+    command: ["python", "-m", "telegram.listener"]
+    volumes:
+      - ./data:/data
+    depends_on:
+      - app
+    restart: unless-stopped
+
   mysql:
     image: mysql:8.4
     command:
