@@ -5,8 +5,10 @@ namespace App\Filament\Pages;
 use App\Filament\Concerns\AdminOnly;
 use App\Models\Setting;
 use App\Services\Classify\ClassifierMode;
+use App\Services\Drafts\TemplateDrafter;
 use BackedEnum;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -48,6 +50,7 @@ class ManageSettings extends Page
             'quiet_hours' => Setting::get('quiet_hours', config('leadradar.notify.quiet_hours')),
             'classifier_mode' => app(ClassifierMode::class)->mode(),
             'agency_name' => Setting::get('agency_name'),
+            'templates' => TemplateDrafter::templates(),
             'agency_website' => Setting::get('agency_website'),
         ]);
     }
@@ -80,6 +83,16 @@ class ManageSettings extends Page
                         TextInput::make('quiet_hours')->label('Giờ yên lặng (giờ VN, ví dụ 23-07)')
                             ->regex('/^([01]?\d|2[0-3])-([01]?\d|2[0-3])$/')->required(),
                     ]),
+                Section::make('Template bản nháp trả lời (khi không dùng AI)')
+                    ->description('Dùng ở chế độ keyword, khi chưa có API key, hoặc khi AI hết ngân sách/lỗi ở chế độ Tự động. '
+                        .'Biến: {agency} {website} {area} {budget} {duration} {arrival} {listing} {listing_price} {listings}. '
+                        .'Đoạn trong [[ ... ]] bị bỏ nếu có biến rỗng. Không nên để link trong trả lời công khai.')
+                    ->collapsible()
+                    ->columns(2)
+                    ->schema(collect(['en' => 'Tiếng Anh', 'ru' => 'Tiếng Nga'])->flatMap(fn ($label, $lang) => [
+                        Textarea::make("templates.{$lang}.public_reply")->label("{$label}: trả lời công khai")->rows(5)->required()->maxLength(2000),
+                        Textarea::make("templates.{$lang}.dm")->label("{$label}: tin nhắn riêng")->rows(5)->required()->maxLength(2000),
+                    ])->all()),
                 Section::make('Thông tin agency (dùng trong bản nháp)')
                     ->columns(2)
                     ->schema([
@@ -98,6 +111,7 @@ class ManageSettings extends Page
         Setting::put('quiet_hours', (string) $data['quiet_hours']);
         Setting::put('classifier_mode', (string) $data['classifier_mode']);
         Setting::put('agency_name', (string) $data['agency_name']);
+        Setting::put('reply_templates', collect($data['templates'])->map(fn ($variants) => collect($variants)->map(fn ($t) => (string) $t)->all())->all());
         Setting::put('agency_website', (string) ($data['agency_website'] ?? ''));
 
         Notification::make()->title('Đã lưu cài đặt')->success()->send();

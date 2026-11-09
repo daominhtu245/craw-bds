@@ -112,6 +112,25 @@ return [
         ],
     ],
 
+    // Reply drafts without AI (keyword mode, no key, or AI failure in "auto").
+    // Admins edit them on the Settings page (settings.reply_templates); these are the defaults.
+    // Placeholders: {agency} {website} {area} {budget} {duration} {arrival} {listing} {listing_price} {listings}
+    // [[ ... ]] is dropped when any placeholder inside it is empty.
+    'drafts' => [
+        'template_model' => 'template',
+        'max_listings' => 3,
+        'templates' => [
+            'en' => [
+                'public_reply' => "Hi! {agency} has a few places[[ in {area}]][[ within {budget}/month]] that could fit what you're looking for. Happy to send photos and details by private message.",
+                'dm' => "Hi! I saw your post in the group[[ about a place in {area}]]. I'm with {agency}.\n[[Here are some options that match:\n{listings}\n]]Would you like photos or a quick video call?[[ You're arriving {arrival}, so we can arrange viewings before you land.]][[ More listings: {website}]]",
+            ],
+            'ru' => [
+                'public_reply' => 'Здравствуйте! У {agency} есть подходящие варианты[[ в районе {area}]][[ в пределах {budget} в месяц]]. Могу прислать фото и подробности в личные сообщения.',
+                'dm' => "Здравствуйте! Увидел ваш пост в группе[[ про жильё в районе {area}]]. Я из {agency}.\n[[Вот варианты, которые могут подойти:\n{listings}\n]]Прислать фото или показать по видеосвязи?[[ Вы приезжаете {arrival}, можем организовать просмотр заранее.]][[ Другие объекты: {website}]]",
+            ],
+        ],
+    ],
+
     'leads' => [
         'expires_after_days' => (int) env('LEAD_EXPIRES_DAYS', 60),
         'requirement_tags' => [

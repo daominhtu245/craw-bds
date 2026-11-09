@@ -54,10 +54,22 @@ class ClassifierMode
         };
     }
 
-    /** AI reply drafts need a key and are skipped when the user chose keyword-only. */
-    public function draftsEnabled(): bool
+    /**
+     * How reply drafts are written: "ai" or "template". Templates are used in
+     * keyword mode, without a key, and in "auto" once the budget is spent.
+     * In "ai" mode the draft job pauses on a spent budget instead.
+     */
+    public function draftEngine(): string
     {
-        return $this->hasApiKey() && $this->mode() !== self::KEYWORD && ! $this->budget->exceeded();
+        if ($this->mode() === self::KEYWORD || ! $this->hasApiKey()) {
+            return 'template';
+        }
+
+        if ($this->mode() === self::AUTO && $this->budget->exceeded()) {
+            return 'template';
+        }
+
+        return 'ai';
     }
 
     public static function label(string $mode): string

@@ -113,13 +113,10 @@ final class LeadActions
             ->icon(Heroicon::OutlinedSparkles)
             ->color('gray')
             ->requiresConfirmation()
-            ->modalDescription('AI sẽ soạn lại 2 bản nháp mới. Bản cũ vẫn được giữ.')
+            ->modalDescription(fn () => app(ClassifierMode::class)->draftEngine() === 'ai'
+                ? 'AI sẽ soạn lại 2 bản nháp mới. Bản cũ vẫn được giữ.'
+                : 'Tạo 2 bản nháp mới từ template (trang Cài đặt). Bản cũ vẫn được giữ.')
             ->action(function (Lead $record) {
-                if (! app(ClassifierMode::class)->hasApiKey()) {
-                    Notification::make()->title('Chưa cấu hình ANTHROPIC_API_KEY nên không soạn được bản nháp AI')->warning()->send();
-
-                    return;
-                }
                 DraftReplyJob::dispatch($record->id, force: true);
                 Notification::make()->title('Đang soạn bản nháp mới, tải lại sau ít giây')->info()->send();
             });

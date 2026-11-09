@@ -19,7 +19,6 @@ use App\Services\Ai\AiBudget;
 use App\Services\Ai\ClaudeClient;
 use App\Services\Ai\ClaudeException;
 use App\Services\Ai\LeadClassifier;
-use App\Services\Ai\ReplyDrafter;
 use App\Services\Classify\ClassifierMode;
 use App\Services\Classify\FieldExtractor;
 use App\Services\Classify\RuleClassifier;
@@ -206,7 +205,7 @@ class KeywordClassifierTest extends TestCase
         (new ClassifyItemJob($item->id))->handle(app(LeadClassifier::class), app(LeadProcessor::class));
     }
 
-    public function test_keyword_mode_creates_lead_without_ai_and_without_drafts(): void
+    public function test_keyword_mode_creates_lead_without_ai(): void
     {
         Queue::fake([DraftReplyJob::class]);
         config(['leadradar.ai.api_key' => 'k']);   // even with a key
@@ -225,7 +224,7 @@ class KeywordClassifierTest extends TestCase
         $this->assertSame('keyword', $item->fresh()->classification['engine']);
         $this->assertSame(RawItemStatus::Classified, $item->fresh()->status);
         $this->assertSame('Lead được tạo tự động bằng keyword.', $lead->activities()->first()->body);
-        Queue::assertNotPushed(DraftReplyJob::class);
+        Queue::assertPushed(DraftReplyJob::class);   // drafts come from templates
     }
 
     public function test_auto_mode_without_key_uses_keywords(): void
@@ -241,7 +240,7 @@ class KeywordClassifierTest extends TestCase
         $this->runJob($item);
 
         $this->assertNotNull(Lead::query()->where('raw_item_id', $item->id)->first());
-        Queue::assertNotPushed(DraftReplyJob::class);
+        Queue::assertPushed(DraftReplyJob::class);   // drafts come from templates
     }
 
     public function test_auto_mode_switches_to_keywords_when_budget_is_spent_and_alerts_once(): void
@@ -282,17 +281,6 @@ class KeywordClassifierTest extends TestCase
 
         $this->expectException(ClaudeException::class);
         $this->runJob($this->queuedItem('Looking for a 1BR in An Thuong, 6 months, 450$'));
-    }
-
-    public function test_draft_job_is_skipped_without_key(): void
-    {
-        config(['leadradar.ai.api_key' => '']);
-        $lead = $this->makeLead();
-        $this->app->instance(ClaudeClient::class, Mockery::mock(ClaudeClient::class)->shouldNotReceive('callTool')->getMock());
-
-        (new DraftReplyJob($lead->id, force: true))->handle(app(ReplyDrafter::class));
-
-        $this->assertSame(0, $lead->replyDrafts()->count());
     }
 
     // ------------------------------------------------------------ dashboard

@@ -60,7 +60,7 @@ Không bắt buộc có `ANTHROPIC_API_KEY`. Chọn chế độ ở **Cài đặ
 |---|---|---|
 | `auto` (mặc định) | Có key và còn ngân sách ngày | Hết ngân sách hoặc AI lỗi thì tự chuyển sang keyword, team nhận 1 cảnh báo |
 | `ai` | Luôn | Hết ngân sách thì hàng đợi AI tạm dừng tới 0h (như SPEC) |
-| `keyword` | Không bao giờ | Không tốn phí, không có bản nháp trả lời AI |
+| `keyword` | Không bao giờ | Không tốn phí; bản nháp trả lời lấy từ template |
 
 Keyword classifier (`app/Services/Classify/RuleClassifier.php`):
 
@@ -68,6 +68,14 @@ Keyword classifier (`app/Services/Classify/RuleClassifier.php`):
 - **Giai đoạn**: keyword nhóm `Giai đoạn: …`, hoặc ngày đến nằm trong tương lai.
 - **Ngân sách, số tháng, loại nhà, ngày đến, khu vực, yêu cầu**: đọc bằng regex tiếng Anh/Nga (`FieldExtractor`). Từ khóa cho từng yêu cầu nằm ở `config/leadradar.php` → `classifier.requirement_terms`.
 - Sau bước phân loại, lead đi tiếp y hệt khi dùng AI: khớp căn, chấm điểm, báo Telegram.
+
+Bản nháp trả lời khi không dùng AI (`app/Services/Drafts/TemplateDrafter.php`):
+
+- Dùng khi ở chế độ `keyword`, khi chưa có key, hoặc ở chế độ `auto` khi hết ngân sách hay AI lỗi.
+- Template EN/RU sửa ở **Cài đặt → Template bản nháp**; mặc định lấy từ `config/leadradar.php` → `drafts.templates`. Lead ngôn ngữ khác dùng template EN.
+- Biến điền tự động: `{agency} {website} {area} {budget} {duration} {arrival} {listing} {listing_price} {listings}` (`{listings}` là tối đa 3 căn khớp nhất).
+- Đoạn `[[ ... ]]` bị bỏ nếu có biến rỗng, ví dụ `[[ in {area}]]` biến mất khi lead không nêu khu vực.
+- SĐT lỡ gõ vào template vẫn bị che. Nút **Tạo lại bản nháp** dùng AI hay template theo chế độ hiện tại.
 - Thử ngay ở trang **Test prefilter** (hiện cả kết quả keyword). Đo độ chính xác: `php artisan leadradar:eval --engine=keyword`.
 
 Độ chính xác đo được với `--engine=keyword`:

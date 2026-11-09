@@ -21,6 +21,7 @@ class SettingSeeder extends Seeder
             'classifier_mode' => (string) config('leadradar.classifier.mode'),
             'agency_name' => 'YOUR AGENCY',
             'agency_website' => 'https://example.com',
+            'reply_templates' => (array) config('leadradar.drafts.templates'),
         ];
 
         foreach ($defaults as $key => $value) {
