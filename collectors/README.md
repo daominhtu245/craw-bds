@@ -40,11 +40,11 @@ Session được lưu vào `./data/telegram.session` (đã nằm trong `.gitigno
 ```powershell
 cd collectors
 copy .env.local.example .env.local      # điền TG_API_ID, TG_API_HASH (file này không commit)
-.un-local.ps1 telegram.login          # nhập số điện thoại, mã OTP (và mật khẩu 2FA nếu có)
-.un-local.ps1 telegram.listener       # để cửa sổ này mở; Ctrl+C để dừng
+.\run-local.ps1 telegram.login          # nhập số điện thoại, mã OTP (và mật khẩu 2FA nếu có)
+.\run-local.ps1 telegram.listener       # để cửa sổ này mở; Ctrl+C để dừng
 ```
 
-Laravel phải đang chạy (`php artisan serve` + `queue:work`). Session lưu ở `..\data	elegram.session`.
+Laravel phải đang chạy (`php artisan serve` + `queue:work`). Session lưu ở `..\data\telegram.session`.
 
 ### 4. Chạy
 
