@@ -1,8 +1,0 @@
-pydantic<3,>=2.9
-httpx<1,>=0.28
-telethon<2,>=1.45
-apify-client<4,>=3.4
-selectolax<2,>=1.0
-
-[dev]
-pytest<10,>=9
