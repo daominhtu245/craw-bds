@@ -35,6 +35,17 @@ Session được lưu vào `./data/telegram.session` (đã nằm trong `.gitigno
 
 > Group thường (basic group, ID không bắt đầu bằng `-100`) không có link tới từng tin nhắn. Hãy nâng cấp group đó lên supergroup, nếu không link "Mở bài gốc" sẽ không mở đúng tin.
 
+### Chạy trên Windows không cần Docker
+
+```powershell
+cd collectors
+copy .env.local.example .env.local      # điền TG_API_ID, TG_API_HASH (file này không commit)
+.un-local.ps1 telegram.login          # nhập số điện thoại, mã OTP (và mật khẩu 2FA nếu có)
+.un-local.ps1 telegram.listener       # để cửa sổ này mở; Ctrl+C để dừng
+```
+
+Laravel phải đang chạy (`php artisan serve` + `queue:work`). Session lưu ở `..\data	elegram.session`.
+
 ### 4. Chạy
 
 ```bash
