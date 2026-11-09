@@ -84,6 +84,11 @@ class TelegramNotifier
     /**
      * @param  list<array{text: string, url: string}>  $buttons
      */
+    public function isConfigured(): bool
+    {
+        return (string) config('leadradar.notify.bot_token') !== '' && (string) config('leadradar.notify.team_chat_id') !== '';
+    }
+
     public function send(string $html, array $buttons = []): void
     {
         $token = (string) config('leadradar.notify.bot_token');

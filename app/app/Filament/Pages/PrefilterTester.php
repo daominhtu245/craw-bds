@@ -2,8 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\LeadIntent;
+use App\Enums\LeadStage;
+use App\Enums\PropertyType;
 use App\Filament\Concerns\AdminOnly;
 use App\Services\Areas\AreaResolver;
+use App\Services\Classify\RuleClassifier;
 use App\Services\Prefilter\Prefilter;
 use BackedEnum;
 use Filament\Forms\Components\Textarea;
@@ -13,7 +17,8 @@ use Filament\Support\Icons\Heroicon;
 
 /**
  * "Test nhanh" box for keywords and areas (SPEC 14.3): paste a text and see
- * what the text steps of the prefilter decide. No AI call, nothing stored.
+ * what the text steps of the prefilter and the keyword classifier decide.
+ * No AI call, nothing stored.
  *
  * @property-read Schema $form
  */
@@ -76,6 +81,29 @@ class PrefilterTester extends Page
             'strong' => $analysis->hasStrongPositive,
             'housing' => $analysis->mentionsHousing,
             'areas' => app(AreaResolver::class)->resolveQuietly($candidates),
+            'rules' => $this->ruleResult($text),
+        ];
+    }
+
+    /** What the keyword classifier would decide (no AI call). */
+    private function ruleResult(string $text): array
+    {
+        $r = app(RuleClassifier::class)->analyze($text, now());
+        $intent = LeadIntent::from($r['intent']);
+        $budget = $r['budget'] === null ? null : trim(($r['budget']['min'] ?? '').' – '.($r['budget']['max'] ?? '').' '.$r['budget']['currency'].' ('.$r['budget']['raw'].')', ' –');
+
+        return [
+            'intent' => $intent->getLabel(),
+            'creates_lead' => $intent->createsLead() && $r['confidence'] >= (float) config('leadradar.ai.min_confidence'),
+            'confidence' => $r['confidence'],
+            'stage' => LeadStage::from($r['stage'])->getLabel(),
+            'matched' => $r['matched'],
+            'type' => PropertyType::from($r['property_type'])->getLabel(),
+            'duration' => $r['duration_months'],
+            'arrival' => $r['arrival_date'],
+            'budget' => $budget,
+            'requirements' => $r['requirements'],
+            'summary' => $r['summary_vi'],
         ];
     }
 }

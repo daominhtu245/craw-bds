@@ -38,6 +38,13 @@ class NotifyLeadJob implements ShouldBeUnique, ShouldQueue
 
     public function handle(TelegramNotifier $notifier, QuietHours $quietHours): void
     {
+        // Local / trial setups without a bot: the lead stays on the dashboard, nothing to retry.
+        if (! $notifier->isConfigured()) {
+            Log::warning('lead.notify_skipped_not_configured', ['job' => 'NotifyLeadJob', 'lead_id' => $this->leadId]);
+
+            return;
+        }
+
         // Quiet hours: keep the lead for the digest, except urgent leads (SPEC 13).
         if ($quietHours->isQuiet()) {
             $lead = Lead::query()->find($this->leadId);

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Jobs\Concerns\RespectsAiBudget;
 use App\Models\Lead;
 use App\Services\Ai\ReplyDrafter;
+use App\Services\Classify\ClassifierMode;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -41,6 +42,12 @@ class DraftReplyJob implements ShouldBeUnique, ShouldQueue
         $lead = Lead::query()->find($this->leadId);
 
         if ($lead === null || (! $this->force && $lead->replyDrafts()->exists())) {
+            return;
+        }
+
+        if (! app(ClassifierMode::class)->hasApiKey()) {
+            Log::info('lead.draft_skipped_no_api_key', ['job' => 'DraftReplyJob', 'lead_id' => $lead->id]);
+
             return;
         }
 

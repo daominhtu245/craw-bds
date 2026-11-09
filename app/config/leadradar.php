@@ -76,6 +76,42 @@ return [
         ],
     ],
 
+    // Classification engine. "auto": AI when ANTHROPIC_API_KEY is set and the daily
+    // budget is not spent, keyword rules otherwise. "ai": AI only (jobs pause when
+    // the budget is spent). "keyword": rules only, no API key needed.
+    // The admin can override it on the Settings page (settings.classifier_mode).
+    'classifier' => [
+        'mode' => env('CLASSIFIER_MODE', 'auto'),
+        'rules_version' => 'keyword-rules-v1',
+        // Confidence = base + per_weight × winning keyword weight + per_field × extracted fields.
+        'confidence' => [
+            'base' => (float) env('RULES_CONFIDENCE_BASE', 0.45),
+            'per_weight' => (float) env('RULES_CONFIDENCE_PER_WEIGHT', 0.1),
+            'per_field' => (float) env('RULES_CONFIDENCE_PER_FIELD', 0.05),
+            'max' => 0.9,
+        ],
+        // Requirement tag => terms (lowercase, matched as word prefixes).
+        'requirement_terms' => [
+            'pet_friendly' => ['pet', 'cat', 'dog', 'kitten', 'puppy', 'кошк', 'кот', 'собак', 'питом', 'животн'],
+            'furnished' => ['furnished', 'мебел', 'меблир'],
+            'pool' => ['pool', 'бассейн'],
+            'gym' => ['gym', 'спортзал', 'тренажер'],
+            'bathtub' => ['bathtub', 'bath tub', 'ванн'],
+            'kitchen' => ['kitchen', 'кухн'],
+            'workspace' => ['workspace', 'desk', 'work from home', 'рабоч'],
+            'fast_wifi' => ['wifi', 'wi-fi', 'internet', 'интернет', 'вайфай'],
+            'near_beach' => ['beach', 'near the sea', 'пляж', 'у моря', 'близко к морю'],
+            'quiet' => ['quiet', 'тих'],
+            'sea_view' => ['sea view', 'ocean view', 'вид на море'],
+            'river_view' => ['river view', 'вид на реку'],
+            'family' => ['family', 'kids', 'children', 'child', 'семь', 'дет', 'ребен', 'ребён'],
+            'school_nearby' => ['school', 'школ'],
+            'parking' => ['parking', 'garage', 'парков'],
+            'balcony' => ['balcony', 'балкон'],
+            'washing_machine' => ['washing machine', 'washer', 'laundry', 'стиральн'],
+        ],
+    ],
+
     'leads' => [
         'expires_after_days' => (int) env('LEAD_EXPIRES_DAYS', 60),
         'requirement_tags' => [

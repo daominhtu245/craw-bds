@@ -8,6 +8,7 @@ use App\Jobs\NotifyLeadJob;
 use App\Models\Lead;
 use App\Models\Listing;
 use App\Models\Setting;
+use App\Services\Classify\ClassifierMode;
 use App\Services\Matching\ListingMatcher;
 use App\Services\Scoring\LeadScorer;
 use Illuminate\Support\Facades\Log;
@@ -23,6 +24,7 @@ class LeadProcessor
     public function __construct(
         private readonly ListingMatcher $matcher,
         private readonly LeadScorer $scorer,
+        private readonly ClassifierMode $mode,
     ) {}
 
     public function process(Lead $lead): Lead
@@ -47,7 +49,8 @@ class LeadProcessor
 
         // SPEC 9.4 step 6: drafts for hot leads, then the notification. They run on
         // separate queues so the Telegram alert never waits for the draft.
-        if ($lead->score >= $this->minScore()) {
+        // AI drafts need an API key; keyword-only mode skips them (sales write the reply).
+        if ($lead->score >= $this->minScore() && $this->mode->draftsEnabled()) {
             DraftReplyJob::dispatch($lead->id);
         }
 

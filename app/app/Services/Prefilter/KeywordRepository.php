@@ -11,19 +11,34 @@ use Illuminate\Support\Facades\Cache;
  */
 class KeywordRepository
 {
-    public const CACHE_KEY = 'leadradar:keywords:v1';
+    public const CACHE_KEY = 'leadradar:keywords:v2';
 
     /**
+     * Prefilter keywords.
+     *
      * @return array{positive: list<array{term: string, weight: int, is_regex: bool}>, negative: list<array{term: string, weight: int, is_regex: bool}>}
      */
     public function all(): array
     {
+        $grouped = $this->grouped();
+
+        return ['positive' => $grouped['positive'] ?? [], 'negative' => $grouped['negative'] ?? []];
+    }
+
+    /** @return list<array{term: string, weight: int, is_regex: bool}> */
+    public function ofKind(KeywordKind $kind): array
+    {
+        return $this->grouped()[$kind->value] ?? [];
+    }
+
+    /** @return array<string, list<array{term: string, weight: int, is_regex: bool}>> */
+    private function grouped(): array
+    {
         return Cache::remember(self::CACHE_KEY, (int) config('leadradar.prefilter.cache_ttl_seconds'), function () {
-            $grouped = ['positive' => [], 'negative' => []];
+            $grouped = [];
 
             Keyword::query()
                 ->where('is_active', true)
-                ->whereIn('kind', [KeywordKind::Positive->value, KeywordKind::Negative->value])
                 ->orderBy('id')
                 ->get()
                 ->each(function (Keyword $k) use (&$grouped) {

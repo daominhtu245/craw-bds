@@ -60,6 +60,31 @@ class AreaResolver
         return array_keys($slugs);
     }
 
+    /**
+     * Area slugs whose name or alias appears in a free text (keyword classifier).
+     *
+     * @return list<string> Unique slugs in order of first appearance.
+     */
+    public function findInText(string $text): array
+    {
+        $haystack = ' '.self::fold($text).' ';
+        $found = [];
+
+        foreach ($this->index() as $alias => $slug) {
+            if (mb_strlen($alias) < 3) {
+                continue;
+            }
+            $pos = mb_strpos($haystack, ' '.$alias.' ');
+            if ($pos !== false && (! isset($found[$slug]) || $pos < $found[$slug])) {
+                $found[$slug] = $pos;
+            }
+        }
+
+        asort($found);
+
+        return array_keys($found);
+    }
+
     /** Lowercase, strip diacritics (đ → d), collapse spaces and punctuation. */
     public static function fold(string $text): string
     {

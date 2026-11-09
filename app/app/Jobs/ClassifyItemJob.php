@@ -7,6 +7,7 @@ use App\Jobs\Concerns\RespectsAiBudget;
 use App\Models\RawItem;
 use App\Services\Ai\ClaudeException;
 use App\Services\Ai\LeadClassifier;
+use App\Services\Classify\ClassifierMode;
 use App\Services\Leads\LeadProcessor;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * AI classification → lead → match → score → notify (SPEC 9).
+ * Classification (AI or keyword rules) → lead → match → score → notify (SPEC 9).
  * Only items in status "queued" are processed, so re-runs never duplicate leads.
  */
 class ClassifyItemJob implements ShouldBeUnique, ShouldQueue
@@ -40,7 +41,7 @@ class ClassifyItemJob implements ShouldBeUnique, ShouldQueue
         return (string) $this->rawItemId;
     }
 
-    public function handle(LeadClassifier $classifier, LeadProcessor $processor): void
+    public function handle(LeadClassifier $classifier, LeadProcessor $processor, ?ClassifierMode $mode = null): void
     {
         $item = RawItem::query()->find($this->rawItemId);
 
@@ -48,7 +49,9 @@ class ClassifyItemJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        if ($this->pauseIfOverBudget()) {
+        // Only "ai" mode pauses on a spent budget; "auto" switches to keyword rules instead.
+        $mode ??= app(ClassifierMode::class);
+        if ($mode->mode() === ClassifierMode::AI && $this->pauseIfOverBudget()) {
             return;
         }
 

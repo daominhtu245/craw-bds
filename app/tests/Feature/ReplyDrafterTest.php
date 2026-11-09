@@ -21,6 +21,7 @@ class ReplyDrafterTest extends TestCase
 
     private function fakeDraft(?array &$captured = null): void
     {
+        config(['leadradar.ai.api_key' => 'test-key']);
         $mock = Mockery::mock(ClaudeClient::class);
         $mock->shouldReceive('callTool')->andReturnUsing(function (...$args) use (&$captured) {
             $captured = $args;

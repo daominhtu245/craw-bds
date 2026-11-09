@@ -47,10 +47,38 @@ php artisan migrate:fresh --seed
 php artisan db:seed --class=DemoLeadSeeder        # 7 lead mẫu tự viết, không cần AI key
 php artisan leadradar:ingest-file storage/samples.jsonl
 php artisan serve --host=127.0.0.1 --port=8000     # cửa sổ 1
-php artisan queue:work --queue=notify,prefilter,default   # cửa sổ 2 (thêm ",ai" khi đã có ANTHROPIC_API_KEY)
+php artisan queue:work --queue=notify,prefilter,default,ai   # cửa sổ 2 (chế độ keyword cũng chạy trên queue ai, miễn phí)
 ```
 
 Mở http://127.0.0.1:8000/admin.
+
+## Phân loại bằng AI hoặc keyword
+
+Không bắt buộc có `ANTHROPIC_API_KEY`. Chọn chế độ ở **Cài đặt → Phân loại tin** (mặc định lấy từ `CLASSIFIER_MODE`):
+
+| Chế độ | Khi nào dùng AI | Ghi chú |
+|---|---|---|
+| `auto` (mặc định) | Có key và còn ngân sách ngày | Hết ngân sách hoặc AI lỗi thì tự chuyển sang keyword, team nhận 1 cảnh báo |
+| `ai` | Luôn | Hết ngân sách thì hàng đợi AI tạm dừng tới 0h (như SPEC) |
+| `keyword` | Không bao giờ | Không tốn phí, không có bản nháp trả lời AI |
+
+Keyword classifier (`app/Services/Classify/RuleClassifier.php`):
+
+- **Ý định**: cộng trọng số các keyword nhóm `Phân loại: …` (trang **Từ khóa**), nhóm có tổng cao nhất thắng. "Tìm thuê" chỉ được tính khi bài có nhắc tới nhà ở.
+- **Giai đoạn**: keyword nhóm `Giai đoạn: …`, hoặc ngày đến nằm trong tương lai.
+- **Ngân sách, số tháng, loại nhà, ngày đến, khu vực, yêu cầu**: đọc bằng regex tiếng Anh/Nga (`FieldExtractor`). Từ khóa cho từng yêu cầu nằm ở `config/leadradar.php` → `classifier.requirement_terms`.
+- Sau bước phân loại, lead đi tiếp y hệt khi dùng AI: khớp căn, chấm điểm, báo Telegram.
+- Thử ngay ở trang **Test prefilter** (hiện cả kết quả keyword). Đo độ chính xác: `php artisan leadradar:eval --engine=keyword`.
+
+Độ chính xác đo được với `--engine=keyword`:
+
+| Bộ mẫu | Precision | Recall | Ghi chú |
+|---|---|---|---|
+| `tests/Fixtures/samples.jsonl` (60) | 0.95 | 1.00 | Keyword mặc định được chọn dựa trên bộ này |
+| `tests/Fixtures/samples_holdout.jsonl` (30), lần chạy đầu | 0.44 | 0.36 | Câu mới, keyword chưa từng gặp |
+| `samples_holdout.jsonl` sau khi bổ sung từ đồng nghĩa | 0.92 | 1.00 | Không còn là bộ "mù" |
+
+Con số thật trên bài đăng thật sẽ nằm giữa hai mức trên. Nên chạy keyword vài ngày, xem các lead bị đánh "Không hợp lệ" để bổ sung keyword, hoặc bật AI khi có key.
 
 ## Ingest API (SPEC 7)
 
@@ -77,6 +105,7 @@ Tất cả endpoint cần header `Authorization: Bearer $INGEST_TOKEN` và bị 
 - AI: API version `2026-10-21`, không gửi `temperature`. Model trong `AI_FALLBACK_MODELS` (mặc định Sonnet/Opus) được bật server-side refusal fallback (`fallbacks: "default"`).
 - Prefilter `lang_vi`: tỷ lệ tính theo **từ** có dấu tiếng Việt (> 30%), không theo ký tự (văn bản tiếng Việt thuần chỉ ~25% ký tự có dấu).
 - "Keyword dương mạnh" = keyword có `weight ≥ 2`.
+- Thêm chế độ phân loại bằng keyword (không cần API key) theo yêu cầu: `CLASSIFIER_MODE` / Cài đặt. `keywords.kind` đổi sang string để thêm nhóm `intent_*`, `stage_*`. Chưa có bot Telegram thì job báo lead bỏ qua (ghi log) thay vì báo lỗi.
 
 ## Phase 2 — pipeline
 

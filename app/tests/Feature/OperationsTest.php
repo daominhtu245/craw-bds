@@ -127,6 +127,7 @@ class OperationsTest extends TestCase
     public function test_ai_job_pauses_and_alerts_when_budget_is_spent(): void
     {
         config(['leadradar.ai.daily_budget_usd' => 1.0]);
+        Setting::put('classifier_mode', 'ai');   // "auto" would switch to keyword rules instead
         app(AiBudget::class)->record('claude-sonnet-5-5', 400_000, 30_000);   // $0.80 + $0.30
         $item = $this->makeLead([], ['status' => RawItemStatus::Queued])->rawItem;
         $item->lead()->delete();

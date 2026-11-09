@@ -9,6 +9,8 @@ use App\Models\KnownAgent;
 use App\Models\Lead;
 use App\Models\RawItem;
 use App\Services\Areas\AreaResolver;
+use App\Services\Classify\ClassifierMode;
+use App\Services\Classify\RuleClassifier;
 use App\Services\Currency\CurrencyConverter;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +20,8 @@ use Illuminate\Support\Facades\Log;
  * AI classification and post-processing (SPEC 9).
  *
  * classifyText() only talks to the model (used by leadradar:eval).
- * classify() also stores the result and creates the lead when it qualifies.
+ * classify() picks AI or keyword rules (ClassifierMode), stores the result and
+ * creates the lead when it qualifies.
  */
 class LeadClassifier
 {
@@ -26,6 +29,8 @@ class LeadClassifier
         private readonly ClaudeClient $client,
         private readonly PromptRepository $prompts,
         private readonly AreaResolver $areas,
+        private readonly ClassifierMode $mode,
+        private readonly RuleClassifier $rules,
     ) {}
 
     public function classifyText(string $text, ?string $context, CarbonInterface $postedAt, string $sourceName): ClassificationRun
@@ -58,7 +63,7 @@ class LeadClassifier
     public function classify(RawItem $item): ?Lead
     {
         $item->loadMissing('source');
-        $run = $this->classifyText($item->text, $item->context_text, $item->posted_at, $item->source->name);
+        $run = $this->run($item);
         $c = $run->classification;
 
         $item->forceFill([
@@ -86,6 +91,26 @@ class LeadClassifier
         }
 
         return $this->createLead($item, $c);
+    }
+
+    /** AI or keyword rules, depending on ClassifierMode. In "auto" an AI error falls back to rules. */
+    private function run(RawItem $item): ClassificationRun
+    {
+        if (! $this->mode->useAi()) {
+            return $this->rules->classifyText($item->text, $item->context_text, $item->posted_at);
+        }
+
+        try {
+            return $this->classifyText($item->text, $item->context_text, $item->posted_at, $item->source->name);
+        } catch (ClaudeException $e) {
+            if ($this->mode->mode() !== ClassifierMode::AUTO) {
+                throw $e;
+            }
+
+            Log::warning('classify.ai_failed_fallback_rules', ['item_id' => $item->id, 'error' => $e->getMessage()]);
+
+            return $this->rules->classifyText($item->text, $item->context_text, $item->posted_at);
+        }
     }
 
     private function createLead(RawItem $item, Classification $c): Lead
@@ -122,7 +147,7 @@ class LeadClassifier
             if ($lead->wasRecentlyCreated) {
                 $lead->activities()->create([
                     'type' => ActivityType::System,
-                    'body' => 'Lead được tạo tự động bởi AI.',
+                    'body' => ($c->raw['engine'] ?? null) === 'keyword' ? 'Lead được tạo tự động bằng keyword.' : 'Lead được tạo tự động bởi AI.',
                     'meta' => ['model' => $item->ai_model, 'confidence' => $c->confidence],
                 ]);
             }

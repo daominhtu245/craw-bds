@@ -18,6 +18,7 @@ class SettingSeeder extends Seeder
             'fx_per_usd' => ['VND' => 26000, 'RUB' => 80, 'EUR' => 0.92, 'KRW' => 1380, 'AUD' => 1.53, 'GBP' => 0.79],
             'notify_min_score' => (int) config('leadradar.notify.min_score'),
             'quiet_hours' => (string) config('leadradar.notify.quiet_hours'),
+            'classifier_mode' => (string) config('leadradar.classifier.mode'),
             'agency_name' => 'YOUR AGENCY',
             'agency_website' => 'https://example.com',
         ];

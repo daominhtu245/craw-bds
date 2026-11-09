@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\LeadIntent;
 use App\Services\Ai\LeadClassifier;
 use App\Services\Ai\UsageCost;
+use App\Services\Classify\RuleClassifier;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -12,19 +13,28 @@ use Illuminate\Support\Carbon;
 use Throwable;
 
 /**
- * Runs the hand-written eval set through the REAL AI (SPEC 18.3).
+ * Runs the hand-written eval set through the REAL AI (SPEC 18.3), or through
+ * the keyword rules with --engine=keyword (free, no API key needed).
  * This is the only command allowed to call the Anthropic API outside the queue.
  */
 #[Signature('leadradar:eval
     {--file=tests/Fixtures/samples.jsonl : JSONL eval file relative to the app root}
     {--limit=0 : Only run the first N samples (0 = all)}
+    {--engine=ai : ai (real API, costs money) or keyword (rules, free)}
     {--min-precision=0.85 : Required tenant_demand precision}
     {--min-recall=0.80 : Required tenant_demand recall}')]
-#[Description('Evaluate the AI classifier on the labelled samples (calls the real API)')]
+#[Description('Evaluate the classifier on the labelled samples (--engine=ai calls the real API)')]
 class EvalCommand extends Command
 {
-    public function handle(LeadClassifier $classifier, UsageCost $cost): int
+    public function handle(LeadClassifier $classifier, RuleClassifier $rules, UsageCost $cost): int
     {
+        $engine = (string) $this->option('engine');
+        if (! in_array($engine, ['ai', 'keyword'], true)) {
+            $this->error('--engine must be "ai" or "keyword"');
+
+            return self::FAILURE;
+        }
+
         $path = (string) $this->option('file');
         if (! is_file($path)) {
             $path = base_path($path);
@@ -57,12 +67,15 @@ class EvalCommand extends Command
             $expected = (string) $sample['expected_intent'];
 
             try {
-                $run = $classifier->classifyText(
-                    (string) $sample['text'],
-                    $sample['context'] ?? null,
-                    Carbon::parse($sample['posted_at'] ?? 'now')->utc(),
-                    (string) ($sample['source'] ?? 'Eval samples'),
-                );
+                $postedAt = Carbon::parse($sample['posted_at'] ?? 'now')->utc();
+                $run = $engine === 'keyword'
+                    ? $rules->classifyText((string) $sample['text'], $sample['context'] ?? null, $postedAt)
+                    : $classifier->classifyText(
+                        (string) $sample['text'],
+                        $sample['context'] ?? null,
+                        $postedAt,
+                        (string) ($sample['source'] ?? 'Eval samples'),
+                    );
                 $predicted = $run->classification->intent->value;
                 $usd += $cost->usd($run->model, $run->inputTokens, $run->outputTokens);
 
@@ -85,6 +98,7 @@ class EvalCommand extends Command
 
         $bar->finish();
         $this->newLine(2);
+        $this->line("engine: {$engine}");
 
         $this->info('Confusion matrix (rows = expected, columns = predicted)');
         $this->table(['expected \\ predicted', ...$labels, 'error'], array_map(

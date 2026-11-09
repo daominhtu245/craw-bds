@@ -43,6 +43,8 @@ trait FakesClaude
             ));
 
         $this->app->instance(ClaudeClient::class, $mock);
+        // "auto" classifier mode uses the AI only when a key is configured.
+        config(['leadradar.ai.api_key' => 'test-key']);
 
         return $mock;
     }

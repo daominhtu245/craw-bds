@@ -5,6 +5,7 @@ namespace App\Services\Prefilter;
 use App\Enums\FilterReason;
 use App\Models\KnownAgent;
 use App\Models\RawItem;
+use App\Services\Text\TermMatcher;
 use App\Services\Text\TextNormalizer;
 
 /**
@@ -100,7 +101,7 @@ class Prefilter
      */
     private function matches(string $text, array $keywords): array
     {
-        return array_values(array_filter($keywords, fn (array $k) => $this->containsTerm($text, $k['term'], $k['is_regex'])));
+        return TermMatcher::matches($text, $keywords);
     }
 
     private function mentionsHousing(string $text): bool
@@ -114,16 +115,8 @@ class Prefilter
         return false;
     }
 
-    /**
-     * Plain terms must start at a word boundary but may continue (word prefix),
-     * so Russian stems like "квартир" match "квартиру".
-     */
     private function containsTerm(string $text, string $term, bool $isRegex): bool
     {
-        if ($isRegex) {
-            return @preg_match('~'.str_replace('~', '\~', $term).'~iu', $text) === 1;
-        }
-
-        return preg_match('~(?<![\p{L}\p{N}])'.preg_quote($term, '~').'~u', $text) === 1;
+        return TermMatcher::contains($text, $term, $isRegex);
     }
 }

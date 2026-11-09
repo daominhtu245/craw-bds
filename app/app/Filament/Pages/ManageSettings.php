@@ -4,7 +4,9 @@ namespace App\Filament\Pages;
 
 use App\Filament\Concerns\AdminOnly;
 use App\Models\Setting;
+use App\Services\Classify\ClassifierMode;
 use BackedEnum;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -13,7 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * Settings (SPEC 14.3): FX rates, thresholds, quiet hours, agency info.
+ * Settings (SPEC 14.3): classifier mode, FX rates, thresholds, quiet hours, agency info.
  *
  * @property-read Schema $form
  */
@@ -44,6 +46,7 @@ class ManageSettings extends Page
             'fx' => collect(self::CURRENCIES)->mapWithKeys(fn ($c) => [$c => $fx[$c] ?? null])->all(),
             'notify_min_score' => Setting::get('notify_min_score', config('leadradar.notify.min_score')),
             'quiet_hours' => Setting::get('quiet_hours', config('leadradar.notify.quiet_hours')),
+            'classifier_mode' => app(ClassifierMode::class)->mode(),
             'agency_name' => Setting::get('agency_name'),
             'agency_website' => Setting::get('agency_website'),
         ]);
@@ -54,6 +57,16 @@ class ManageSettings extends Page
         return $schema
             ->statePath('data')
             ->components([
+                Section::make('Phân loại tin')
+                    ->description(fn () => app(ClassifierMode::class)->hasApiKey()
+                        ? 'ANTHROPIC_API_KEY: đã cấu hình.'
+                        : 'ANTHROPIC_API_KEY: chưa cấu hình. Chế độ Tự động sẽ dùng keyword; bản nháp AI không được tạo.')
+                    ->schema([
+                        Select::make('classifier_mode')->label('Chế độ phân loại')
+                            ->options(collect(ClassifierMode::MODES)->mapWithKeys(fn ($m) => [$m => ClassifierMode::label($m)])->all())
+                            ->helperText('Keyword: dùng các từ khóa nhóm "Phân loại: …" và "Giai đoạn: …" ở trang Từ khóa. Thử trước ở trang Test prefilter.')
+                            ->required(),
+                    ]),
                 Section::make('Tỷ giá (số đơn vị ngoại tệ đổi được 1 USD)')
                     ->columns(3)
                     ->schema(collect(self::CURRENCIES)->map(
@@ -83,6 +96,7 @@ class ManageSettings extends Page
         Setting::put('fx_per_usd', collect($data['fx'])->map(fn ($v) => (float) $v)->all());
         Setting::put('notify_min_score', (int) $data['notify_min_score']);
         Setting::put('quiet_hours', (string) $data['quiet_hours']);
+        Setting::put('classifier_mode', (string) $data['classifier_mode']);
         Setting::put('agency_name', (string) $data['agency_name']);
         Setting::put('agency_website', (string) ($data['agency_website'] ?? ''));
 
