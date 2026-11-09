@@ -35,6 +35,23 @@ composer install   # composer.json khai báo sẵn ext-pcntl/posix để cài đ
 php artisan test
 ```
 
+## Chạy dashboard local không cần Docker (để thử)
+
+Dùng SQLite và queue `database` thay cho MySQL/Redis. Horizon không chạy được ở chế độ này; thay bằng `queue:work`.
+
+```bash
+cd app
+# .env: DB_CONNECTION=sqlite, QUEUE_CONNECTION=database, CACHE_STORE=database,
+#       ADMIN_EMAIL/ADMIN_PASSWORD, INGEST_TOKEN, APP_URL=http://127.0.0.1:8000
+php artisan migrate:fresh --seed
+php artisan db:seed --class=DemoLeadSeeder        # 7 lead mẫu tự viết, không cần AI key
+php artisan leadradar:ingest-file storage/samples.jsonl
+php artisan serve --host=127.0.0.1 --port=8000     # cửa sổ 1
+php artisan queue:work --queue=notify,prefilter,default   # cửa sổ 2 (thêm ",ai" khi đã có ANTHROPIC_API_KEY)
+```
+
+Mở http://127.0.0.1:8000/admin.
+
 ## Ingest API (SPEC 7)
 
 Tất cả endpoint cần header `Authorization: Bearer $INGEST_TOKEN` và bị giới hạn 120 request/phút. Nếu `INGEST_TOKEN` để trống, mọi request đều bị từ chối.
