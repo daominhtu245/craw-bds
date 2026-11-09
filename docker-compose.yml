@@ -80,6 +80,34 @@ services:
       - app
     restart: unless-stopped
 
+  collector-facebook:
+    image: expat-lead-radar-collectors:local
+    build:
+      context: ./collectors
+    env_file: .env
+    environment:
+      SPOOL_DIR: /data/spool/facebook
+    command: ["python", "-m", "facebook.run"]
+    volumes:
+      - ./data:/data
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  collector-forum:
+    image: expat-lead-radar-collectors:local
+    build:
+      context: ./collectors
+    env_file: .env
+    environment:
+      SPOOL_DIR: /data/spool/forum
+    command: ["python", "-m", "forum.expat_com"]
+    volumes:
+      - ./data:/data
+    depends_on:
+      - app
+    restart: unless-stopped
+
   mysql:
     image: mysql:8.4
     command:

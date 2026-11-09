@@ -43,3 +43,28 @@ docker compose logs -f collector-telegram
 ```
 
 Gửi thử câu "Looking for 1BR in An Thuong from Dec, 6 months, budget 450$" vào group test. Team sẽ nhận thông báo Telegram có link mở đúng tin gốc.
+
+## Facebook qua Apify (Phase 5)
+
+- Actor mặc định: `apify/facebook-groups-scraper` (`APIFY_FB_ACTOR`). Input/output đã đối chiếu với README của actor (2026-11-09).
+- Chỉ group **công khai**. Thêm source loại `facebook` với `identifier` là URL group, `meta` có thể đặt `{"maxItems": 50}`.
+- Mỗi vòng (mặc định 60 phút) chạy 1 lần actor cho mỗi group, chỉ lấy bài sau `max(last_item_at, now − 48h)`. Chi phí mỗi run (`usage_total_usd`) được ghi vào log.
+- Comment Facebook để Phase 7.
+
+```bash
+docker compose run --rm collector-facebook python -m facebook.run --once
+```
+
+## Expat.com forum (Phase 5)
+
+- robots.txt được đọc lại ở **mỗi vòng**. Nếu mục forum bị chặn, collector dừng (exit code 2) và ghi lỗi. Kiểm tra ngày 2026-11-09: `/en/forum/asia/vietnam/da-nang/` được phép.
+- 1 request / 5 giây, User-Agent lấy từ `CRAWLER_USER_AGENT` (hãy điền email liên hệ thật).
+- Mỗi vòng đọc 2 trang danh sách, rồi mở các thread cập nhật trong `FORUM_MAX_AGE_DAYS` ngày (mặc định 7). Ngày giờ lấy từ JSON-LD `DiscussionForumPosting`.
+- Fixture `tests/fixtures/expat_com_*.html` giữ đúng cấu trúc HTML thật, nhưng nội dung là tự viết.
+- Forum Đà Nẵng ít hoạt động. Nếu thread gần nhất đã cũ hơn 7 ngày, một vòng crawl sẽ ra 0 item. Muốn chạy thử thì tăng `FORUM_MAX_AGE_DAYS`.
+
+```bash
+docker compose run --rm collector-forum python -m forum.expat_com --once
+```
+
+Trên VPS Linux, thư mục `./data` phải ghi được bởi uid 1000: `mkdir -p data && sudo chown -R 1000:1000 data`.
