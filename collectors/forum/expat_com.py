@@ -69,6 +69,7 @@ class ForumPost:
     text: str
     posted_at: datetime
     is_first: bool
+    quote: str | None = None   # text of the earlier post this reply quotes
 
 
 # ---------------------------------------------------------------- parsing
@@ -119,6 +120,38 @@ def _author_id(url: str | None) -> str | None:
     return (match.group(1) or match.group(2)) if match else None
 
 
+QUOTE_ATTRIBUTION_RE = re.compile(r"\s*-\s*@[^\n]*$")
+
+
+def _clean(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _message(card) -> tuple[str, str | None] | None:
+    """Own text and quoted text of one post card.
+
+    Replies quote earlier posts inline as <blockquote>…<strong> - @user</strong></blockquote>;
+    JSON-LD flattens that into the reply text, so the HTML is used to separate them.
+    """
+    message = card.css_first("div.card-post__message")
+    if message is None:
+        return None
+
+    quotes = []
+    for block in message.css("blockquote"):
+        quoted = QUOTE_ATTRIBUTION_RE.sub("", _clean(block.text(separator=" ")))
+        if quoted:
+            quotes.append(quoted)
+        block.decompose()
+
+    full = _clean(message.text(separator=" "))
+    paragraphs = [p for p in (_clean(p.text(separator=" ")) for p in message.css("p")) if p]
+    # Keep paragraph breaks only when <p> tags hold all the text (no lists or loose text lost).
+    own = "\n".join(paragraphs) if paragraphs and _clean(" ".join(paragraphs)) == full else full
+
+    return own, ("\n\n".join(quotes) or None)
+
+
 def parse_thread(html: str) -> list[ForumPost]:
     tree = HTMLParser(html)
     posting = None
@@ -146,6 +179,10 @@ def parse_thread(html: str) -> list[ForumPost]:
     posts: list[ForumPost] = []
     for i, entry in enumerate(entries):
         text = (entry.get("text") or "").strip()
+        quote = None
+        parsed = _message(cards[i]) if aligned else None
+        if parsed is not None and parsed[0]:
+            text, quote = parsed
         if i == 0 and posting.get("headline"):
             text = f"{posting['headline'].strip()}\n\n{text}"
         if not text:
@@ -164,15 +201,20 @@ def parse_thread(html: str) -> list[ForumPost]:
             text=text,
             posted_at=posted_at,
             is_first=i == 0,
+            quote=quote,
         ))
     return posts
 
 
 def to_items(topic: TopicRef, posts: list[ForumPost]) -> list[IngestItem]:
-    """First post → external_id "t{thread}"; replies → "p{post}" with parent "t{thread}"."""
+    """First post → external_id "t{thread}"; replies → "p{post}" with parent "t{thread}".
+
+    context_text of a reply is the post it quotes, otherwise the first post.
+    """
     first = next((p for p in posts if p.is_first), None)
     items = []
     for post in posts:
+        context = None if post.is_first else (post.quote or (first.text if first else None))
         items.append(IngestItem(
             source_type="forum",
             source_identifier=SOURCE_IDENTIFIER,
@@ -182,7 +224,7 @@ def to_items(topic: TopicRef, posts: list[ForumPost]) -> list[IngestItem]:
             author_id=post.author_id,
             author_handle=post.author_name,
             text=post.text,
-            context_text=None if post.is_first or first is None else first.text[:1000],
+            context_text=context[:1000] if context else None,
             posted_at=post.posted_at,
         ))
     return items

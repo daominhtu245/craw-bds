@@ -146,3 +146,31 @@ def test_user_agent_header():
     crawler = Crawler("ExpatLeadRadar/1.0 (+mailto:ops@example.com)", transport=httpx.MockTransport(handler), sleep=lambda s: None)
     crawler.load_robots()
     assert requests[0].headers["user-agent"] == "ExpatLeadRadar/1.0 (+mailto:ops@example.com)"
+
+
+def test_parse_thread_separates_quoted_text_from_reply():
+    posts = parse_thread(THREAD)
+
+    reply = posts[2]
+    assert reply.text == "Thanks! We also have a small dog, so it must be pet friendly."
+    assert reply.quote == "An Thuong is easy to live in without a motorbike. Prices for a 1 bedroom start around 400 USD."
+    assert posts[1].quote is None
+    # First post keeps paragraph breaks from the HTML.
+    assert posts[0].text.endswith("budget around 500 USD.\nAny agents you trust?")
+
+
+def test_reply_context_is_the_quoted_post():
+    topic = TopicRef("900101", THREAD_URL, "Sample", timedelta(days=3), False)
+    items = [i.to_payload() for i in to_items(topic, parse_thread(THREAD))]
+
+    assert items[2]["text"] == "Thanks! We also have a small dog, so it must be pet friendly."
+    assert items[2]["context_text"].startswith("An Thuong is easy to live in")
+    assert items[1]["context_text"].startswith("Sample: moving in January")   # no quote: first post
+
+
+def test_message_without_paragraph_tags_keeps_all_text():
+    html = THREAD.replace(
+        '<p>An Thuong is easy to live in without a motorbike. Prices for a 1 bedroom start around 400 USD.</p>',
+        '<ul><li>An Thuong is easy</li></ul><p>Prices start around 400 USD.</p>',
+    )
+    assert parse_thread(html)[1].text == "An Thuong is easy Prices start around 400 USD."

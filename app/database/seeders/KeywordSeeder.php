@@ -90,6 +90,7 @@ class KeywordSeeder extends Seeder
                 'property management' => 3, 'i help expats find' => 3, 'whatsapp for details' => 2, 'free viewing' => 2,
                 'units available' => 2, 'our company' => 2, 'manages more than' => 3, 'book a free' => 2,
                 'i can help you find' => 3, 'many options' => 2, 'check your inbox' => 2,
+                'i saw your post' => 2, 'would love to help you' => 2, 'happy to help you' => 2, 'we can help you find' => 3,
             ],
             'ru' => [
                 'агентство' => 3, 'риелтор' => 3, 'риэлтор' => 3, 'без комиссии' => 3, 'подберём' => 3, 'подберем' => 3, 'большая база' => 3,

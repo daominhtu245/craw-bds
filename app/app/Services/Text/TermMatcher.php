@@ -18,7 +18,11 @@ final class TermMatcher
             return @preg_match('~'.str_replace('~', '\~', $term).'~iu', $text) === 1;
         }
 
-        return preg_match('~(?<![\p{L}\p{N}])'.preg_quote($term, '~').'~u', $text) === 1;
+        // A short Latin last word ("need a", "an") must end the word, otherwise
+        // "need a" would match "need advice". Longer words and stems stay prefixes.
+        $end = preg_match('~(?<![\p{L}\p{N}])\p{Latin}{1,2}$~u', $term) === 1 ? '(?![\p{L}\p{N}])' : '';
+
+        return preg_match('~(?<![\p{L}\p{N}])'.preg_quote($term, '~').$end.'~u', $text) === 1;
     }
 
     /**
