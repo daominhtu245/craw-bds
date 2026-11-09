@@ -1,0 +1,22 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Telegram sessions and collector runtime data
+data/
+*.session
+*.session-journal
+collectors/spool/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
