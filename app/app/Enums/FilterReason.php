@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum FilterReason: string
+use Filament\Support\Contracts\HasLabel;
+
+enum FilterReason: string implements HasLabel
 {
     case Duplicate = 'duplicate';
     case LangVi = 'lang_vi';
@@ -16,5 +18,18 @@ enum FilterReason: string
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
+    }
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::Duplicate => 'Trùng nội dung',
+            self::LangVi => 'Tiếng Việt',
+            self::NegativeKw => 'Keyword âm',
+            self::NoPositiveKw => 'Không có keyword',
+            self::TooShort => 'Quá ngắn',
+            self::KnownAgent => 'Môi giới đã biết',
+            self::TooOld => 'Quá cũ',
+        };
     }
 }

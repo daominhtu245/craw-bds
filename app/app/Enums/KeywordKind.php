@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum KeywordKind: string
+use Filament\Support\Contracts\HasLabel;
+
+enum KeywordKind: string implements HasLabel
 {
     case Positive = 'positive';
     case Negative = 'negative';
@@ -12,5 +14,14 @@ enum KeywordKind: string
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
+    }
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::Positive => 'Dương',
+            self::Negative => 'Âm',
+            self::Area => 'Khu vực',
+        };
     }
 }

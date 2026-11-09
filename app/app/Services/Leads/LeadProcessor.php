@@ -3,6 +3,7 @@
 namespace App\Services\Leads;
 
 use App\Enums\LeadIntent;
+use App\Jobs\DraftReplyJob;
 use App\Jobs\NotifyLeadJob;
 use App\Models\Lead;
 use App\Models\Listing;
@@ -44,11 +45,22 @@ class LeadProcessor
 
         Log::info('lead.scored', ['lead_id' => $lead->id, 'item_id' => $lead->raw_item_id, 'score' => $lead->score]);
 
+        // SPEC 9.4 step 6: drafts for hot leads, then the notification. They run on
+        // separate queues so the Telegram alert never waits for the draft.
+        if ($lead->score >= $this->minScore()) {
+            DraftReplyJob::dispatch($lead->id);
+        }
+
         if ($this->shouldNotify($lead)) {
             NotifyLeadJob::dispatch($lead->id);
         }
 
         return $lead;
+    }
+
+    private function minScore(): int
+    {
+        return (int) Setting::get('notify_min_score', config('leadradar.notify.min_score'));
     }
 
     public function shouldNotify(Lead $lead): bool
@@ -57,8 +69,6 @@ class LeadProcessor
             return false;
         }
 
-        $minScore = (int) Setting::get('notify_min_score', config('leadradar.notify.min_score'));
-
-        return $lead->intent === LeadIntent::LeavingHandover || $lead->score >= $minScore;
+        return $lead->intent === LeadIntent::LeavingHandover || $lead->score >= $this->minScore();
     }
 }

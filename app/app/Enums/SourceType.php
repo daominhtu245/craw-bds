@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum SourceType: string
+use Filament\Support\Contracts\HasLabel;
+
+enum SourceType: string implements HasLabel
 {
     case Telegram = 'telegram';
     case Facebook = 'facebook';
@@ -13,5 +15,10 @@ enum SourceType: string
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
+    }
+
+    public function getLabel(): string
+    {
+        return ucfirst($this->value);
     }
 }

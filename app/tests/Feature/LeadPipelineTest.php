@@ -57,7 +57,7 @@ class LeadPipelineTest extends TestCase
 
     public function test_hot_lead_reaches_telegram(): void
     {
-        $this->fakeClaude(['tenant_demand']);
+        $this->fakeClaude(['tenant_demand', $this->toolResult(['public_reply' => 'Hi! We can help.', 'dm' => 'Hello!'], 'claude-sonnet-5-5')]);
         Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['message_id' => 1]])]);
 
         $this->ingest('Looking for 1BR in An Thuong from Dec, 6 months, budget 450$, we have a cat');
@@ -68,6 +68,7 @@ class LeadPipelineTest extends TestCase
         $this->assertNotNull($lead->notified_at);
         $this->assertSame('Sea Breeze 1BR', $lead->matchedListings->first()->title);
         $this->assertSame(RawItemStatus::Classified, RawItem::first()->status);
+        $this->assertSame(2, $lead->replyDrafts()->count());
 
         Http::assertSent(function (Request $r) use ($lead) {
             $d = $r->data();

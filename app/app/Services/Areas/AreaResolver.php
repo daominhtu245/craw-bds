@@ -39,6 +39,27 @@ class AreaResolver
         return array_keys($slugs);
     }
 
+    /**
+     * Exact alias matches only, without logging (dashboard quick test).
+     *
+     * @param  list<string>  $candidates
+     * @return list<string>
+     */
+    public function resolveQuietly(array $candidates): array
+    {
+        $index = $this->index();
+        $slugs = [];
+
+        foreach ($candidates as $candidate) {
+            $slug = $index[self::fold($candidate)] ?? null;
+            if ($slug !== null) {
+                $slugs[$slug] = true;
+            }
+        }
+
+        return array_keys($slugs);
+    }
+
     /** Lowercase, strip diacritics (đ → d), collapse spaces and punctuation. */
     public static function fold(string $text): string
     {

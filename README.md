@@ -69,3 +69,16 @@ Tất cả endpoint cần header `Authorization: Bearer $INGEST_TOKEN` và bị 
 docker compose exec app php artisan leadradar:eval          # gọi AI thật, cần ANTHROPIC_API_KEY
 docker compose exec app php artisan leadradar:eval --limit=10
 ```
+
+## Phase 3 — Dashboard (Filament 5)
+
+Đăng nhập tại `http://localhost:8080/admin`.
+
+| Vai trò | Thấy gì |
+|---|---|
+| `sales` | Leads (lọc, nhận, đổi trạng thái, ghi chú, bản nháp), kho căn hộ (chỉ xem), dashboard |
+| `admin` | Toàn bộ, thêm Nguồn, Keyword, Khu vực, Dữ liệu thô, Test prefilter, Cài đặt, Người dùng, `/horizon` |
+
+- Bản nháp trả lời: bấm vào nội dung để copy, dán và trả lời **thủ công** tại bài gốc, rồi bấm "Đã trả lời" để ghi vào lịch sử. Hệ thống không bao giờ tự gửi.
+- Chuyển sang "Mất khách" hoặc "Không hợp lệ" bắt buộc nhập ghi chú.
+- Lưu ý khi viết code Filament: tham số closure phải đặt đúng tên (`$query`, `$data`, `$record`, `$state`, `$get`), vì Filament inject theo tên.
