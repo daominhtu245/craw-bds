@@ -1,6 +1,6 @@
 # Expat Lead Radar
 
-Đặc tả đầy đủ: [SPEC.md](SPEC.md). Quy ước làm việc: [CLAUDE.md](CLAUDE.md).
+Đặc tả đầy đủ: [SPEC.md](SPEC.md). Quy ước làm việc: [CLAUDE.md](CLAUDE.md). **Trạng thái và bàn giao: [docs/HANDOVER.md](docs/HANDOVER.md).**
 
 ## Chạy bằng Docker
 

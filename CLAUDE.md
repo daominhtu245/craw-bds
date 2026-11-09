@@ -2,6 +2,8 @@
 
 Nguồn sự thật duy nhất là `SPEC.md`. Đọc lại phần liên quan trước mỗi task.
 
+**Trạng thái hiện tại, việc còn lại và cách dựng lại trên máy mới: đọc `docs/HANDOVER.md` trước tiên.** Cập nhật file đó sau mỗi thay đổi đáng kể. Các điểm lệch so với SPEC đã chốt được ghi trong `README.md` → "Khác biệt so với SPEC".
+
 ## Cách làm việc
 
 - Làm **đúng một phase** trong SPEC mục 19 cho mỗi yêu cầu. Không làm trước phase sau.
@@ -40,4 +42,15 @@ docker compose exec app php artisan leadradar:ingest-file storage/samples.jsonl
 docker compose exec app php artisan leadradar:eval
 docker compose run --rm collectors pytest
 docker compose run --rm -it collector-telegram python -m telegram.login
+```
+
+Không Docker (SQLite + queue database, chi tiết trong `docs/HANDOVER.md` mục 6):
+
+```bash
+cd app && php artisan test                      # 239 test
+php artisan serve --host=127.0.0.1 --port=8000
+php artisan queue:work --queue=notify,prefilter,default,ai
+php artisan leadradar:eval --engine=keyword     # không gọi AI, miễn phí
+cd collectors && .venv/Scripts/python -m pytest -q   # 49 test
+.\run-local.ps1 forum.expat_com --once          # Windows, đọc collectors/.env.local
 ```
