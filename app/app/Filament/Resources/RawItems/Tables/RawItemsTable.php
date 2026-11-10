@@ -22,11 +22,11 @@ class RawItemsTable
             ->defaultSort('id', 'desc')
             ->columns([
                 TextColumn::make('id')->label('#')->sortable(),
-                TextColumn::make('text')->label('Nội dung')->limit(100)->wrap()->searchable(),
+                TextColumn::make('text')->label('Nội dung')->limit(160)->extraAttributes(['style' => 'min-width: 20rem'])->wrap()->lineClamp(4)->searchable(),
                 TextColumn::make('source.name')->label('Nguồn')
                     ->description(fn (RawItem $record) => $record->source?->type?->getLabel()),
-                TextColumn::make('author_handle')->label('Người đăng')->placeholder('—')->searchable(),
-                TextColumn::make('language')->label('Ngôn ngữ')->placeholder('—'),
+                TextColumn::make('author_handle')->label('Người đăng')->placeholder('—')->searchable()->visibleFrom('lg'),
+                TextColumn::make('language')->label('Ngôn ngữ')->placeholder('—')->visibleFrom('md'),
                 TextColumn::make('status')->label('Trạng thái')->badge(),
                 TextColumn::make('filter_reason')->label('Lý do lọc')->badge()->color('gray')->placeholder('—'),
                 TextColumn::make('ai_intent')->label('AI')->badge()->placeholder('—')

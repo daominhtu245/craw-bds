@@ -28,9 +28,9 @@ class RawItemResource extends Resource
 
     protected static ?string $navigationLabel = 'Dữ liệu thô';
 
-    protected static ?string $modelLabel = 'item';
+    protected static ?string $modelLabel = 'dữ liệu thô';
 
-    protected static ?string $pluralModelLabel = 'items';
+    protected static ?string $pluralModelLabel = 'dữ liệu thô';
 
     protected static ?int $navigationSort = 6;
 

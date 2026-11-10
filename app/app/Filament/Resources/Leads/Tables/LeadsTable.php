@@ -38,32 +38,38 @@ class LeadsTable
                     ->sortable(),
                 TextColumn::make('summary_vi')
                     ->label('Tóm tắt')
+                    ->extraAttributes(['style' => 'min-width: 18rem'])
                     ->wrap()
                     ->lineClamp(3)
                     ->description(fn (Lead $record) => $record->intent === LeadIntent::LeavingHandover ? '♻️ Nguồn hàng' : null)
                     ->searchable(),
                 TextColumn::make('language')
                     ->label('Ngôn ngữ')
-                    ->formatStateUsing(fn (?string $state) => LeadFormat::language($state)),
+                    ->formatStateUsing(fn (?string $state) => LeadFormat::language($state))
+                    ->visibleFrom('md'),
                 TextColumn::make('stage')
                     ->label('Giai đoạn')
                     ->badge(),
                 TextColumn::make('areas')
                     ->label('Khu vực')
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->visibleFrom('md'),
                 TextColumn::make('budget_max_usd')
                     ->label('Ngân sách')
                     ->state(fn (Lead $record) => LeadFormat::budget($record))
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->visibleFrom('md'),
                 TextColumn::make('duration_months')
                     ->label('Thời gian thuê')
                     ->suffix(' tháng')
                     ->placeholder('—')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('lg'),
                 TextColumn::make('rawItem.source.name')
                     ->label('Nguồn')
-                    ->description(fn (Lead $record) => $record->rawItem?->source?->type?->getLabel()),
+                    ->description(fn (Lead $record) => $record->rawItem?->source?->type?->getLabel())
+                    ->visibleFrom('lg'),
                 TextColumn::make('rawItem.posted_at')
                     ->label('Đăng')
                     ->since()
@@ -73,7 +79,8 @@ class LeadsTable
                     ->badge(),
                 TextColumn::make('assignee.name')
                     ->label('Phụ trách')
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->visibleFrom('md'),
                 TextColumn::make('created_at')
                     ->label('Tạo lúc')
                     ->dateTime()
