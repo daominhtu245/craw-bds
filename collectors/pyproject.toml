@@ -1,7 +1,7 @@
 [project]
 name = "expat-lead-radar-collectors"
 version = "1.0.0"
-description = "Read-only collectors for Expat Lead Radar (Telegram, Facebook via Apify, Expat.com forum)"
+description = "Read-only collectors for Expat Lead Radar (Telegram, Facebook via Apify or own browser session, Expat.com forum)"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.9,<3",
@@ -13,6 +13,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=9,<10"]
+# Facebook via your own logged-in browser (facebook.session / facebook.browser).
+# After install: python -m playwright install chromium
+browser = ["playwright>=1.48,<2"]
 
 [build-system]
 requires = ["setuptools>=75"]

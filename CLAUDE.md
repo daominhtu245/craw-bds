@@ -28,6 +28,7 @@ Nguồn sự thật duy nhất là `SPEC.md`. Đọc lại phần liên quan tr�
 - KHÔNG lưu SĐT, email, ảnh, ID người dùng dạng thô. Che SĐT và email trước khi lưu (SPEC mục 15).
 - KHÔNG tạo chức năng export hàng loạt dữ liệu lead.
 - KHÔNG vượt CAPTCHA, không bỏ qua robots.txt, không bỏ qua rate limit.
+  - Ngoại lệ duy nhất do chủ dự án chốt (2026-11-10): `collectors/facebook/browser.py` đọc group Facebook bằng phiên đăng nhập của chủ dự án (dùng cá nhân). Vẫn phải chỉ đọc, chậm, và dừng khi gặp login/checkpoint/CAPTCHA. Không mở rộng ngoại lệ này sang nguồn khác.
 - Test không gọi API thật (Anthropic, Telegram, Apify). Dùng mock và fixture. Chỉ lệnh `leadradar:eval` được gọi AI thật.
 - KHÔNG commit `.env`, file session Telegram hay bất kỳ secret nào. Thêm chúng vào `.gitignore`.
 - Fixture dùng dữ liệu **tự viết**, không copy bài thật của người khác.
@@ -51,6 +52,6 @@ cd app && php artisan test                      # 239 test
 php artisan serve --host=127.0.0.1 --port=8000
 php artisan queue:work --queue=notify,prefilter,default,ai
 php artisan leadradar:eval --engine=keyword     # không gọi AI, miễn phí
-cd collectors && .venv/Scripts/python -m pytest -q   # 49 test
+cd collectors && .venv/Scripts/python -m pytest -q   # 58 test
 .\run-local.ps1 forum.expat_com --once          # Windows, đọc collectors/.env.local
 ```

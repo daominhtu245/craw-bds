@@ -1,4 +1,4 @@
-# Bàn giao: trạng thái dự án (cập nhật 2026-11-09)
+# Bàn giao: trạng thái dự án (cập nhật 2026-11-10)
 
 Tài liệu này dành cho người (hoặc phiên Claude Code mới) tiếp tục dự án trên máy khác. Đọc theo thứ tự: file này → [SPEC.md](../SPEC.md) → [CLAUDE.md](../CLAUDE.md) → [README.md](../README.md) → [collectors/README.md](../collectors/README.md) → [docs/DEPLOY.md](DEPLOY.md).
 
@@ -15,7 +15,8 @@ Tài liệu này dành cho người (hoặc phiên Claude Code mới) tiếp t�
   - Bản nháp trả lời bằng template.
   - Seeder dữ liệu demo.
   - Script chạy collector trên Windows không cần Docker.
-- Test: **239 test Laravel** (PHPUnit) và **49 test collector** (pytest), tất cả xanh tại commit cuối.
+- Test: **239 test Laravel** (PHPUnit) và **58 test collector** (pytest), tất cả xanh tại commit cuối.
+- 2026-11-10: dựng lại trên máy mới (Cách B, toolchain ở `C:	ools`), thêm collector Facebook đọc bằng phiên đăng nhập của chủ dự án (mục 4).
 - **Chưa phase nào được nghiệm thu đầy đủ ngoài thực tế.** Lý do: máy cũ chưa chạy được Docker (cần reboot sau khi cài WSL2), và chưa có API key, bot Telegram, tài khoản listener hay token Apify. Chi tiết ở mục 3.
 
 ## 2. Đã làm gì (theo commit)
@@ -37,6 +38,7 @@ Tài liệu này dành cho người (hoặc phiên Claude Code mới) tiếp t�
 | `c4c194e` | Bản nháp trả lời bằng template khi không dùng AI |
 | `191572c` | Sửa crawler Expat.com (tách phần trích dẫn), sửa khớp keyword ngắn |
 | `d67517e`, `414ca74` | `collectors/run-local.ps1`, `.env.local.example` |
+| (2026-11-10) | `package-lock.json`; collector Facebook bằng phiên trình duyệt (`facebook.session`, `facebook.browser`) |
 
 ## 3. Trạng thái nghiệm thu theo SPEC mục 19
 
@@ -72,6 +74,7 @@ Danh sách đầy đủ ở README → "Khác biệt so với SPEC". Các điể
 - **Expat.com**:
   - robots.txt cho phép `/en/forum/...`; crawler gửi 1 request mỗi 5 giây.
   - Bài trả lời trích dẫn bài trước bằng `<blockquote>` trong HTML. Parser bỏ phần trích dẫn và đưa nó vào `context_text`.
+- **Facebook bằng phiên đăng nhập** (chủ dự án chốt 2026-11-10, dùng cá nhân): Playwright + profile trình duyệt trong `data/facebook-profile`. Trái điều khoản/robots.txt của Facebook, đã ghi ngoại lệ trong CLAUDE.md. Chỉ đọc, chậm, dừng khi gặp login/checkpoint/CAPTCHA. **Đường dẫn JSON chưa kiểm chứng trên trang thật** (chỉ fixture tự viết). Apify vẫn giữ (`facebook.run`).
 - **Bảo mật và riêng tư**: không lưu ID người dùng thô (chỉ `author_key` = sha256), che SĐT/email trước khi lưu, không có chức năng tự gửi tin hay export hàng loạt.
 
 ## 5. Không có trong git (phải tạo lại trên máy mới)
@@ -119,7 +122,9 @@ Collectors:
 cd ../collectors
 python -m venv .venv
 .venv/Scripts/python -m pip install -e ".[dev]"     # Linux/macOS: .venv/bin/python
-.venv/Scripts/python -m pytest -q                    # mong đợi: 49 passed
+.venv/Scripts/python -m pytest -q                    # mong đợi: 58 passed
+.venv/Scripts/python -m pip install -e ".[browser]"   # tùy chọn: Facebook bằng phiên trình duyệt
+.venv/Scripts/python -m playwright install chromium
 cp .env.local.example .env.local                     # INGEST_TOKEN phải trùng với app/.env
 ```
 
@@ -131,7 +136,7 @@ Chạy (Windows): `.\run-local.ps1 forum.expat_com --once`, `.\run-local.ps1 tel
 2. **Telegram (Phase 4)**: chủ dự án lấy `TG_API_ID`/`TG_API_HASH` ở my.telegram.org (dùng tài khoản phụ), tự đăng nhập (OTP), tự join group, thêm nguồn trên dashboard. Sau đó chạy listener, kiểm tra backfill và tin thời gian thực.
 3. **Bot báo lead**: tạo bot qua BotFather, thêm vào group team, điền `TG_BOT_TOKEN` và `TG_TEAM_CHAT_ID`. Kiểm tra tiêu chí "lead hiện trong group team trong vòng 60 giây".
 4. **AI**: khi có `ANTHROPIC_API_KEY`, chạy `php artisan leadradar:eval` (tốn phí, ước tính vài cent cho 60 mẫu). So sánh với `--engine=keyword`.
-5. **Facebook**: khi có `APIFY_TOKEN`, chạy `facebook.run --once` với 1 group công khai.
+5. **Facebook**: chủ dự án chạy `facebook.session` (tự đăng nhập), thêm nguồn, chạy `facebook.browser --once`, đối chiếu log `facebook group read` và sửa `facebook/extract.py` nếu `stories` > 0 mà `count` = 0. (Hoặc Apify: `facebook.run --once` khi có `APIFY_TOKEN`.)
 6. **Chất lượng keyword**: theo dõi lead "Không hợp lệ" hoặc bị sót trên dữ liệu thật để bổ sung keyword. Bài mơ hồ (ví dụ "I am thinking about living in Da Nang…") keyword không bắt được; AI làm tốt hơn.
 7. **Triển khai VPS**: theo [docs/DEPLOY.md](DEPLOY.md).
 

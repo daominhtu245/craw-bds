@@ -113,6 +113,7 @@ Tất cả endpoint cần header `Authorization: Bearer $INGEST_TOKEN` và bị 
 - AI: API version `2026-10-21`, không gửi `temperature`. Model trong `AI_FALLBACK_MODELS` (mặc định Sonnet/Opus) được bật server-side refusal fallback (`fallbacks: "default"`).
 - Prefilter `lang_vi`: tỷ lệ tính theo **từ** có dấu tiếng Việt (> 30%), không theo ký tự (văn bản tiếng Việt thuần chỉ ~25% ký tự có dấu).
 - "Keyword dương mạnh" = keyword có `weight ≥ 2`.
+- Facebook có thêm chế độ đọc bằng **phiên đăng nhập của chính bạn** (`facebook.session` + `facebook.browser`, Playwright), bên cạnh Apify. Chủ dự án quyết định ngày 2026-11-10: dùng cá nhân, phi thương mại. Cách này trái điều khoản và robots.txt của Facebook, tài khoản có thể bị checkpoint hoặc khóa. Giới hạn vẫn giữ: chỉ đọc (không click/gõ/like/comment/join), cuộn chậm, gặp login/checkpoint/CAPTCHA thì dừng (exit 2), cookie nằm trong `data/` (không commit). Đường dẫn JSON chưa kiểm chứng trên trang thật.
 - Thêm chế độ phân loại bằng keyword (không cần API key) theo yêu cầu: `CLASSIFIER_MODE` / Cài đặt. `keywords.kind` đổi sang string để thêm nhóm `intent_*`, `stage_*`. Chưa có bot Telegram thì job báo lead bỏ qua (ghi log) thay vì báo lỗi.
 
 ## Phase 2 — pipeline
@@ -139,7 +140,7 @@ docker compose exec app php artisan leadradar:eval --limit=10
 
 ## Phase 4–6
 
-- Collectors (Telegram, Facebook/Apify, Expat.com): xem [collectors/README.md](collectors/README.md).
+- Collectors (Telegram, Facebook qua Apify hoặc phiên trình duyệt, Expat.com): xem [collectors/README.md](collectors/README.md).
 - Triển khai VPS và vận hành: xem [docs/DEPLOY.md](docs/DEPLOY.md).
 - Scheduler: `leadradar:retention` (03:00 hằng ngày), `leadradar:health` và `leadradar:quiet-digest` (mỗi 5 phút).
 - Nguồn "Quan trọng" (bật trong form Nguồn): cảnh báo nếu 24 giờ không có item mới.

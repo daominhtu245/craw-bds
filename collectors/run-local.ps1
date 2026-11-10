@@ -9,6 +9,8 @@ gitignored and must never be committed).
   .\run-local.ps1 telegram.listener       # read-only Telegram listener (Ctrl+C to stop)
   .\run-local.ps1 forum.expat_com --once  # one Expat.com round
   .\run-local.ps1 facebook.run --once     # one Apify round
+  .\run-local.ps1 facebook.session        # log in to Facebook by hand (browser window opens)
+  .\run-local.ps1 facebook.browser --once # one read-only round with that saved session
 #>
 param(
     [Parameter(Mandatory = $true, Position = 0)][string]$Module,
@@ -37,6 +39,7 @@ $dataDir = Join-Path (Split-Path $PSScriptRoot -Parent) 'data'
 New-Item -ItemType Directory -Force -Path (Join-Path $dataDir 'spool') | Out-Null
 if (-not $env:SPOOL_DIR) { $env:SPOOL_DIR = Join-Path $dataDir 'spool' }
 if (-not $env:TG_SESSION_PATH) { $env:TG_SESSION_PATH = Join-Path $dataDir 'telegram.session' }
+if (-not $env:FB_PROFILE_DIR) { $env:FB_PROFILE_DIR = Join-Path $dataDir 'facebook-profile' }
 $env:PYTHONIOENCODING = 'utf-8'
 
 & (Join-Path $PSScriptRoot '.venv\Scripts\python.exe') -m $Module @Rest

@@ -66,6 +66,29 @@ Gửi thử câu "Looking for 1BR in An Thuong from Dec, 6 months, budget 450$" 
 docker compose run --rm collector-facebook python -m facebook.run --once
 ```
 
+## Facebook bằng phiên đăng nhập của bạn (không cần Apify)
+
+> **Chỉ dùng cá nhân.** Chủ dự án chốt ngày 2026-11-10. Cách này trái điều khoản và robots.txt của Facebook, tài khoản có thể bị checkpoint hoặc khóa. Nên dùng **tài khoản phụ**.
+
+- Bạn tự đăng nhập trong cửa sổ trình duyệt. Code không gõ mật khẩu, không giải CAPTCHA, không vượt checkpoint.
+- Cookie lưu trong profile trình duyệt ở `..\data\facebook-profile` (`FB_PROFILE_DIR`, đã nằm trong `.gitignore`, **không commit**). Ai có thư mục này là có quyền vào tài khoản.
+- Chỉ đọc: mỗi group mở 1 trang (sắp xếp bài mới nhất), cuộn `FB_SCROLLS` lần (mặc định 3), nghỉ `FB_SCROLL_DELAY` giây (5–10) giữa các lần cuộn và `FB_GROUP_DELAY` giây (30–60) giữa các group. Không click, gõ, like, comment hay join.
+- Bài được lấy từ JSON mà trang tải về (HTML ban đầu + phản hồi `/api/graphql/`), xem `facebook/extract.py`. Chỉ lấy bài sau `max(last_item_at, now − 48h)`.
+- Gặp trang login, checkpoint hoặc CAPTCHA: dừng ngay (exit code 2), gửi heartbeat lỗi. Đăng nhập lại bằng tay.
+- **[VERIFY]** Đường dẫn JSON mới được kiểm tra bằng fixture tự viết. Lần chạy thật đầu tiên, xem dòng log `facebook group read`: `documents`/`stories` > 0 mà `count` = 0 nghĩa là parser cần sửa.
+
+```powershell
+cd collectors
+.venv\Scripts\python -m pip install -e ".[dev,browser]"
+.venv\Scripts\python -m playwright install chromium   # hoặc đặt FB_BROWSER_CHANNEL=msedge
+.\run-local.ps1 facebook.session            # cửa sổ trình duyệt mở: tự đăng nhập, thấy feed thì đóng cửa sổ
+.\run-local.ps1 facebook.browser --once     # 1 vòng; bỏ --once để chạy mỗi FB_POLL_MINUTES phút
+```
+
+Trên dashboard, vào **Nguồn**, thêm source loại `facebook` với `identifier` là URL group mà tài khoản đó xem được (ví dụ `https://www.facebook.com/groups/ten-group`). `meta` có thể đặt `{"scrolls": 5}`. Muốn xem trình duyệt làm gì thì đặt `FB_HEADLESS=0`.
+
+Chế độ này chỉ chạy local trên Windows (cần cửa sổ để đăng nhập); chưa đưa vào Docker.
+
 ## Expat.com forum (Phase 5)
 
 - robots.txt được đọc lại ở **mỗi vòng**. Nếu mục forum bị chặn, collector dừng (exit code 2) và ghi lỗi. Kiểm tra ngày 2026-11-09: `/en/forum/asia/vietnam/da-nang/` được phép.
