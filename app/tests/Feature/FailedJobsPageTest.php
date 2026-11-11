@@ -7,6 +7,7 @@ use App\Filament\Resources\FailedJobs\Pages\ListFailedJobs;
 use App\Jobs\NotifyLeadJob;
 use App\Models\FailedJob;
 use Database\Seeders\DatabaseSeeder;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -73,7 +74,7 @@ class FailedJobsPageTest extends TestCase
         Livewire::test(ListFailedJobs::class)->callTableAction('forget', $first);
         $this->assertSame(1, FailedJob::count());
 
-        Livewire::test(ListFailedJobs::class)->callAction(\Filament\Actions\Testing\TestAction::make('retryAll')->table());
+        Livewire::test(ListFailedJobs::class)->callAction(TestAction::make('retryAll')->table());
         $this->assertSame(0, FailedJob::count());
         $this->assertSame(1, DB::table('jobs')->count());
     }

@@ -15,6 +15,7 @@ use App\Models\Listing;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Services\Drafts\TemplateDrafter;
+use App\Services\Matching\ListingMatcher;
 use App\Services\Notify\QuietHours;
 use App\Services\Notify\TelegramConfig;
 use App\Services\Notify\TelegramNotifier;
@@ -324,7 +325,7 @@ class SiteTest extends TestCase
     public function test_reply_draft_links_to_the_site_with_a_tracking_code(): void
     {
         $lead = $this->makeLead();
-        app(\App\Services\Matching\ListingMatcher::class)->sync($lead, app(\App\Services\Matching\ListingMatcher::class)->match($lead));
+        app(ListingMatcher::class)->sync($lead, app(ListingMatcher::class)->match($lead));
 
         $dm = app(TemplateDrafter::class)->draft($lead->fresh())->firstWhere('variant', 'dm')->body;
 

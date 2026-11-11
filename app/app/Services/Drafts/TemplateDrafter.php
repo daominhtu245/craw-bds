@@ -8,8 +8,8 @@ use App\Models\Lead;
 use App\Models\Listing;
 use App\Models\ReplyDraft;
 use App\Models\Setting;
-use App\Services\Site\SiteLinks;
 use App\Services\Privacy\PiiMasker;
+use App\Services\Site\SiteLinks;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -149,6 +149,4 @@ class TemplateDrafter
             'site_link' => app(SiteLinks::class)->forLead($lead, $best, $language),
         ];
     }
-
-
 }

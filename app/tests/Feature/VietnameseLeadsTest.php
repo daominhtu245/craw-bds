@@ -6,6 +6,7 @@ use App\Enums\PropertyType;
 use App\Services\Classify\FieldExtractor;
 use App\Services\Classify\RuleClassifier;
 use App\Services\Drafts\TemplateDrafter;
+use App\Services\Prefilter\LanguageDetector;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\KeywordSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -97,7 +98,7 @@ class VietnameseLeadsTest extends TestCase
 
     public function test_unaccented_vietnamese_is_detected_without_catching_english(): void
     {
-        $detector = new \App\Services\Prefilter\LanguageDetector(0.30);
+        $detector = new LanguageDetector(0.30);
 
         $this->assertSame('vi', $detector->detect('can thue can ho 2pn gan bien My Khe, o 1 nam, ngan sach 12tr'));
         $this->assertSame('vi', $detector->detect('Can nhuong lai can ho 1pn khu Ngu Hanh Son, hop dong con 4 thang'));

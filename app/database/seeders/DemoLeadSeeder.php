@@ -104,7 +104,7 @@ class DemoLeadSeeder extends Seeder
         if ($first !== null && $first->replyDrafts()->doesntExist()) {
             $first->replyDrafts()->createMany([
                 ['variant' => 'public_reply', 'language' => 'en', 'body' => 'Hi! We have a pet-friendly 1BR in An Thuong within your budget, available from December. Happy to send details by DM.', 'model' => 'demo', 'created_by' => 'system'],
-                ['variant' => 'dm', 'language' => 'en', 'body' => "Hi! Saw your post about a 1BR in An Thuong. We have Sea Breeze 1BR at 420\$/month, cats welcome, full kitchen. Would you like photos?", 'model' => 'demo', 'created_by' => 'system'],
+                ['variant' => 'dm', 'language' => 'en', 'body' => 'Hi! Saw your post about a 1BR in An Thuong. We have Sea Breeze 1BR at 420$/month, cats welcome, full kitchen. Would you like photos?', 'model' => 'demo', 'created_by' => 'system'],
             ]);
         }
 

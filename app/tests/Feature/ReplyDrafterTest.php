@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Services\Ai\ClaudeClient;
 use App\Services\Ai\ReplyDrafter;
 use App\Services\Ai\ToolCallResult;
+use App\Services\Site\SiteLinks;
 use Database\Seeders\ListingSeeder;
 use Database\Seeders\SettingSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -73,7 +74,7 @@ class ReplyDrafterTest extends TestCase
         $lead = $this->makeLead();
         $listing = Listing::firstWhere('title', 'Sea Breeze 1BR');   // public demo listing
         $lead->matchedListings()->attach($listing->id, ['match_score' => 85]);
-        $link = app(\App\Services\Site\SiteLinks::class)->forLead($lead, $listing, 'en');
+        $link = app(SiteLinks::class)->forLead($lead, $listing, 'en');
 
         // The model forgets the link in the DM and puts it in the public reply.
         config(['leadradar.ai.api_key' => 'test-key']);
