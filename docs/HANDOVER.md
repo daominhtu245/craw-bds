@@ -48,7 +48,7 @@ Tài liệu này dành cho người (hoặc phiên Claude Code mới) tiếp t�
 | 2. Bộ não | Pipeline chạy thật ở bản local với chế độ keyword; Telegram chỉ test bằng mock | `leadradar:eval` với AI thật (cần `ANTHROPIC_API_KEY`, ngưỡng precision ≥ 0.85, recall ≥ 0.80); tin báo lead tới group team trong 60 giây |
 | 3. Dashboard | Test Livewire/Filament cho mọi trang; dashboard đã chạy ở `http://127.0.0.1:8000/admin` | Chưa có người bấm thử toàn bộ luồng trên trình duyệt |
 | 4. Telegram | Test với mock Telethon | Đăng nhập thật, nhận tin thật từ group test |
-| 5. Facebook + Forum | **Expat.com đã chạy thật**: 28 bài, chưa ra lead nào (forum rất vắng). Facebook mới test với mock | Chạy Apify thật (cần `APIFY_TOKEN`) |
+| 5. Facebook + Forum | **Expat.com đã chạy thật**: 28 bài, chưa ra lead nào (forum rất vắng). Facebook bằng phiên trình duyệt đã chạy thật 2026-11-11: 1 group, 10/10 bài tách và nạp được, 0 lead (group toàn tin cho thuê) | Chạy Apify thật (cần `APIFY_TOKEN`) |
 | 6. Vận hành | Test retention xanh; có test "collector Telegram im lặng 31 phút thì báo đúng 1 lần" | Chưa triển khai VPS |
 
 ## 4. Những quyết định đã chốt (lệch hoặc bổ sung so với SPEC)
@@ -74,7 +74,7 @@ Danh sách đầy đủ ở README → "Khác biệt so với SPEC". Các điể
 - **Expat.com**:
   - robots.txt cho phép `/en/forum/...`; crawler gửi 1 request mỗi 5 giây.
   - Bài trả lời trích dẫn bài trước bằng `<blockquote>` trong HTML. Parser bỏ phần trích dẫn và đưa nó vào `context_text`.
-- **Facebook bằng phiên đăng nhập** (chủ dự án chốt 2026-11-10, dùng cá nhân): Playwright + profile trình duyệt trong `data/facebook-profile`. Trái điều khoản/robots.txt của Facebook, đã ghi ngoại lệ trong CLAUDE.md. Chỉ đọc, chậm, dừng khi gặp login/checkpoint/CAPTCHA. **Đường dẫn JSON chưa kiểm chứng trên trang thật** (chỉ fixture tự viết). Apify vẫn giữ (`facebook.run`).
+- **Facebook bằng phiên đăng nhập** (chủ dự án chốt 2026-11-10, dùng cá nhân): Playwright + profile trình duyệt trong `data/facebook-profile`. Trái điều khoản/robots.txt của Facebook, đã ghi ngoại lệ trong CLAUDE.md. Chỉ đọc, chậm, dừng khi gặp login/checkpoint/CAPTCHA. Đường dẫn JSON đã kiểm chứng trên trang thật 2026-11-11 (`stories` = `count` = 10). Apify vẫn giữ (`facebook.run`).
 - **Bảo mật và riêng tư**: không lưu ID người dùng thô (chỉ `author_key` = sha256), che SĐT/email trước khi lưu, không có chức năng tự gửi tin hay export hàng loạt.
 
 ## 5. Không có trong git (phải tạo lại trên máy mới)
@@ -136,7 +136,7 @@ Chạy (Windows): `.\run-local.ps1 forum.expat_com --once`, `.\run-local.ps1 tel
 2. **Telegram (Phase 4)**: chủ dự án lấy `TG_API_ID`/`TG_API_HASH` ở my.telegram.org (dùng tài khoản phụ), tự đăng nhập (OTP), tự join group, thêm nguồn trên dashboard. Sau đó chạy listener, kiểm tra backfill và tin thời gian thực.
 3. **Bot báo lead**: tạo bot qua BotFather, thêm vào group team, điền `TG_BOT_TOKEN` và `TG_TEAM_CHAT_ID`. Kiểm tra tiêu chí "lead hiện trong group team trong vòng 60 giây".
 4. **AI**: khi có `ANTHROPIC_API_KEY`, chạy `php artisan leadradar:eval` (tốn phí, ước tính vài cent cho 60 mẫu). So sánh với `--engine=keyword`.
-5. **Facebook**: chủ dự án chạy `facebook.session` (tự đăng nhập), thêm nguồn, chạy `facebook.browser --once`, đối chiếu log `facebook group read` và sửa `facebook/extract.py` nếu `stories` > 0 mà `count` = 0. (Hoặc Apify: `facebook.run --once` khi có `APIFY_TOKEN`.)
+5. **Facebook**: phiên trình duyệt đã chạy được (2026-11-11). Còn lại: thêm group có người thuê thật, theo dõi log `facebook group read` (sửa `facebook/extract.py` nếu `stories` > 0 mà `count` = 0), cân nhắc thêm negative keyword cho tin đăng của chủ nhà tiếng Anh. (Hoặc Apify: `facebook.run --once` khi có `APIFY_TOKEN`.)
 6. **Chất lượng keyword**: theo dõi lead "Không hợp lệ" hoặc bị sót trên dữ liệu thật để bổ sung keyword. Bài mơ hồ (ví dụ "I am thinking about living in Da Nang…") keyword không bắt được; AI làm tốt hơn.
 7. **Triển khai VPS**: theo [docs/DEPLOY.md](DEPLOY.md).
 
