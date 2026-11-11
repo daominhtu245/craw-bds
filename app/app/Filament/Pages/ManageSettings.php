@@ -8,6 +8,7 @@ use App\Services\Classify\ClassifierMode;
 use App\Services\Drafts\TemplateDrafter;
 use App\Services\Notify\TelegramConfig;
 use App\Services\Notify\TelegramNotifier;
+use App\Services\Settings\ConfigOverrides;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -20,10 +21,12 @@ use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Arr;
 use Throwable;
 
 /**
- * Settings (SPEC 14.3): classifier mode, FX rates, thresholds, quiet hours, agency info.
+ * Settings (SPEC 14.3): classifier mode, FX rates, thresholds, quiet hours, agency info,
+ * plus the .env values listed in ConfigOverrides::FIELDS ("cfg.*"; empty = use .env).
  *
  * @property-read Schema $form
  */
@@ -62,6 +65,10 @@ class ManageSettings extends Page
             'agency_name' => Setting::get('agency_name'),
             'templates' => TemplateDrafter::templates(),
             'agency_website' => Setting::get('agency_website'),
+            'cfg' => Arr::undot(collect(ConfigOverrides::formValues())
+                ->map(fn ($v) => is_bool($v) ? ($v ? '1' : '0') : $v)
+                ->all()),
+            'clear_api_key' => false,
         ]);
     }
 
@@ -79,6 +86,46 @@ class ManageSettings extends Page
                             ->options(collect(ClassifierMode::MODES)->mapWithKeys(fn ($m) => [$m => ClassifierMode::label($m)])->all())
                             ->helperText('Keyword: dùng các từ khóa nhóm "Phân loại: …" và "Giai đoạn: …" ở trang Từ khóa. Thử trước ở trang Test prefilter.')
                             ->required(),
+                    ]),
+                Section::make('AI (Claude)')
+                    ->description('Ô để trống thì dùng giá trị trong .env (ghi ở gợi ý xám).')
+                    ->columns(3)
+                    ->collapsible()
+                    ->schema([
+                        TextInput::make('cfg.ai.api_key')->label('Anthropic API key')->columnSpan(2)
+                            ->password()->revealable()->autocomplete('off')->maxLength(200)
+                            ->regex('/^sk-ant-[A-Za-z0-9_-]{20,}$/')
+                            ->placeholder(fn () => match (true) {
+                                ConfigOverrides::hasStored('ai.api_key') => 'Đã lưu (để trống để giữ nguyên)',
+                                filled(ConfigOverrides::default('ai.api_key')) => 'Đang dùng ANTHROPIC_API_KEY trong .env',
+                                default => 'sk-ant-…',
+                            })
+                            ->helperText('Mã hóa khi lưu, không hiển thị lại. Có key thì chế độ Tự động dùng AI.'),
+                        Toggle::make('clear_api_key')->label('Xóa key đã lưu (dùng .env)')
+                            ->visible(fn () => ConfigOverrides::hasStored('ai.api_key')),
+                        $this->modelSelect('ai.model_classify', 'Model phân loại'),
+                        $this->modelSelect('ai.model_escalate', 'Model hỏi lại khi chưa chắc'),
+                        $this->modelSelect('ai.model_draft', 'Model soạn bản nháp'),
+                        $this->number('ai.daily_budget_usd', 'Ngân sách AI mỗi ngày (USD)', 0, 1000, 0.5),
+                        $this->number('ai.min_confidence', 'Độ tin cậy tối thiểu (0–1)', 0, 1, 0.05)
+                            ->helperText('Dưới mức này thì hỏi lại bằng model mạnh hơn.'),
+                    ]),
+                Section::make('Tiền lọc và lead')
+                    ->description('Ô để trống thì dùng giá trị trong .env (ghi ở gợi ý xám).')
+                    ->columns(3)
+                    ->collapsible()
+                    ->schema([
+                        $this->onOff('prefilter.accept_vi', 'Nhận bài tiếng Việt'),
+                        $this->number('prefilter.max_age_days', 'Bỏ bài cũ hơn (ngày)', 1, 365),
+                        $this->number('prefilter.min_length', 'Bỏ bài ngắn hơn (ký tự)', 1, 500),
+                        $this->number('prefilter.duplicate_window_days', 'Coi là trùng trong vòng (ngày)', 1, 365),
+                        $this->number('prefilter.negative_score_threshold', 'Ngưỡng điểm từ khóa loại trừ', 1, 20)
+                            ->helperText('Tổng trọng số từ khóa loại trừ từ mức này trở lên thì bỏ bài.'),
+                        $this->number('prefilter.strong_positive_weight', 'Trọng số "từ khóa mạnh"', 1, 20)
+                            ->helperText('Bài có từ khóa tích cực từ mức này không bị loại vì từ khóa loại trừ.'),
+                        $this->number('leads.expires_after_days', 'Lead tự hết hạn sau (ngày)', 1, 3650),
+                        $this->number('leads.known_agent_threshold', 'Tự đánh dấu môi giới sau (số tin)', 1, 100)
+                            ->helperText('Người đăng từng ấy tin cho thuê/môi giới thì vào danh sách môi giới.'),
                     ]),
                 Section::make('Tỷ giá (số đơn vị ngoại tệ đổi được 1 USD)')
                     ->columns(3)
@@ -121,6 +168,17 @@ class ManageSettings extends Page
                         TextInput::make('site_contacts.telegram')->label('Telegram (username)')->maxLength(40)->regex('/^@?[A-Za-z][A-Za-z0-9_]{3,}$/'),
                         TextInput::make('site_contacts.whatsapp')->label('WhatsApp (số có mã quốc gia)')->maxLength(30)->regex('/^[\d\s+().-]+$/'),
                         TextInput::make('site_contacts.phone')->label('Số điện thoại')->maxLength(30)->regex('/^[\d\s+().-]+$/'),
+                        $this->onOff('site.enabled', 'Bật trang công khai'),
+                        Select::make('cfg.site.default_locale')->label('Ngôn ngữ mặc định')
+                            ->options(['vi' => 'Tiếng Việt', 'en' => 'English', 'ru' => 'Русский'])
+                            ->placeholder(fn () => 'Theo .env ('.ConfigOverrides::default('site.default_locale').')'),
+                        $this->number('site.per_page', 'Số căn mỗi trang', 1, 100),
+                        $this->number('site.inquiry_score', 'Điểm lead từ form', 0, 100),
+                        $this->number('site.contact_retention_days', 'Giữ liên hệ của khách (ngày)', 1, 3650)
+                            ->helperText('Sau đó họ tên và liên hệ bị xóa (lệnh dọn dữ liệu hằng ngày).'),
+                        $this->number('site.inquiry_rate_limit_per_hour', 'Số yêu cầu tối đa mỗi giờ / IP', 1, 1000),
+                        $this->number('site.min_fill_seconds', 'Thời gian điền form tối thiểu (giây)', 0, 60)
+                            ->helperText('Gửi nhanh hơn bị coi là bot.'),
                     ]),
                 Section::make('Template bản nháp trả lời (khi không dùng AI)')
                     ->description('Dùng ở chế độ keyword, khi chưa có API key, hoặc khi AI hết ngân sách/lỗi ở chế độ Tự động. '
@@ -159,7 +217,14 @@ class ManageSettings extends Page
         Setting::put('agency_website', (string) ($data['agency_website'] ?? ''));
         Setting::put('site_contacts', collect($data['site_contacts'] ?? [])->map(fn ($v) => trim((string) $v))->filter()->all());
 
+        ConfigOverrides::save(
+            collect(array_keys(ConfigOverrides::FIELDS))->mapWithKeys(fn ($key) => [$key => data_get($data['cfg'] ?? [], $key)])->all(),
+            ! empty($data['clear_api_key']) ? ['ai.api_key'] : [],
+        );
+
         $this->data['telegram_bot_token'] = null;
+        $this->data['cfg']['ai']['api_key'] = null;
+        $this->data['clear_api_key'] = false;
 
         Notification::make()->title('Đã lưu cài đặt')->success()->send();
     }
@@ -188,6 +253,28 @@ class ManageSettings extends Page
         }
 
         Notification::make()->title('Đã gửi tin thử, kiểm tra chat Telegram')->success()->send();
+    }
+
+    /** Number field for a ConfigOverrides key; empty = .env value (shown as placeholder). */
+    private function number(string $key, string $label, float $min, float $max, float $step = 1): TextInput
+    {
+        return TextInput::make('cfg.'.$key)->label($label)->numeric()->minValue($min)->maxValue($max)->step($step)
+            ->placeholder(fn () => 'Theo .env: '.ConfigOverrides::default($key));
+    }
+
+    /** On / off / "use .env" for a boolean ConfigOverrides key. */
+    private function onOff(string $key, string $label): Select
+    {
+        return Select::make('cfg.'.$key)->label($label)
+            ->options(['1' => 'Bật', '0' => 'Tắt'])
+            ->placeholder(fn () => 'Theo .env ('.(ConfigOverrides::default($key) ? 'Bật' : 'Tắt').')');
+    }
+
+    private function modelSelect(string $key, string $label): Select
+    {
+        return Select::make('cfg.'.$key)->label($label)
+            ->options(fn () => collect(array_keys((array) config('leadradar.ai.pricing')))->mapWithKeys(fn ($m) => [$m => $m])->all())
+            ->placeholder(fn () => 'Theo .env ('.ConfigOverrides::default($key).')');
     }
 
     private function tokenPlaceholder(): string

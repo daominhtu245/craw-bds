@@ -80,6 +80,8 @@ Thử trên máy local trước khi có VPS: có thể dùng một tunnel HTTPS 
 
 ## 6. Cấu hình (`app/.env`)
 
+Các biến dưới đây (trừ `TG_WEBAPP_MAX_AGE`) cũng sửa được ở **Cài đặt → Website (App #2)**; giá trị trên dashboard được ưu tiên, ô để trống thì dùng `.env`.
+
 | Biến | Mặc định | Ý nghĩa |
 |---|---|---|
 | `SITE_ENABLED` | `true` | Bật trang công khai |

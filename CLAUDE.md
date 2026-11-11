@@ -18,7 +18,7 @@ Nguồn sự thật duy nhất là `SPEC.md`. Đọc lại phần liên quan tr�
 - Collectors: Python 3.12, `pydantic`, `httpx`, `telethon`, `apify-client`, `selectolax`, `pytest`. Quản lý bằng `pyproject.toml`.
 - Code, tên biến, bảng, cột, log: tiếng Anh. Giao diện dashboard và `summary_vi`: tiếng Việt.
 - Business logic đặt trong `app/Services/*`, viết dạng class nhỏ, test được. Controller và Job phải mỏng.
-- Mọi ngưỡng, trọng số, tên model AI đặt trong `config/leadradar.php` và đọc từ `.env`. Không hard-code.
+- Mọi ngưỡng, trọng số, tên model AI đặt trong `config/leadradar.php` và đọc từ `.env`. Không hard-code. Giá trị nghiệp vụ admin cần chỉnh thì thêm vào `ConfigOverrides::FIELDS` để sửa được trên trang Cài đặt (đè lên `.env`).
 - Prompt AI đặt trong `resources/prompts/*.vN.md`. Đổi prompt thì tạo version mới, không sửa đè.
 - Thời gian lưu UTC, hiển thị `Asia/Ho_Chi_Minh`.
 
@@ -49,7 +49,7 @@ docker compose run --rm -it collector-telegram python -m telegram.login
 Không Docker (SQLite + queue database, chi tiết trong `docs/HANDOVER.md` mục 6):
 
 ```bash
-cd app && php artisan test                      # 317 test
+cd app && php artisan test                      # 324 test
 php artisan serve --host=127.0.0.1 --port=8000
 php artisan queue:work --queue=notify,prefilter,default,ai
 php artisan leadradar:eval --engine=keyword     # không gọi AI, miễn phí
