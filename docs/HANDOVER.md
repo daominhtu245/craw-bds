@@ -39,6 +39,7 @@ Tài liệu này dành cho người (hoặc phiên Claude Code mới) tiếp t�
 | `191572c` | Sửa crawler Expat.com (tách phần trích dẫn), sửa khớp keyword ngắn |
 | `d67517e`, `414ca74` | `collectors/run-local.ps1`, `.env.local.example` |
 | (2026-11-10) | `package-lock.json`; collector Facebook bằng phiên trình duyệt (`facebook.session`, `facebook.browser`) |
+| (2026-11-11) | Admin: trang Môi giới đã biết (xem, gỡ, xử lý lại bài bị lọc), Yêu cầu website, Tình trạng collector, Hồ sơ cá nhân (tự đổi mật khẩu); `AdminSmokeTest` mở thử mọi trang theo vai trò |
 | (2026-11-11) | App #2: dự án, ảnh và nội dung VI/EN/RU cho căn hộ; trang công khai `/vi|en|ru`; form yêu cầu (liên hệ mã hóa, chống spam, `?ref=` gắn lead cũ, báo Telegram ngay); Telegram Mini App (kiểm tra initData); `{site_link}` trong bản nháp. Xem `docs/APP2.md` |
 | (2026-11-11) | Nhận khách Việt (prefilter, keyword VI có/không dấu, prompt `classify.v2`, template VI, eval `samples_vi.jsonl`); cấu hình Telegram trên trang Cài đặt |
 | (2026-11-11) | Negative keyword tin chủ nhà tiếng Anh; alias "хай чау"; nền móng Reddit/Threads bằng phiên trình duyệt: `common/browser_session.py`, `reddit.session`, `threads.session` (đăng nhập tay hoặc `--import` cookie), source type `threads`, ingest nhận `reddit`/`threads` |

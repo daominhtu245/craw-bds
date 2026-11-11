@@ -38,6 +38,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // Everyone (sales included) can change their own name, email and password.
+            ->profile(isSimple: false)
             ->brandName('Expat Lead Radar')
             ->colors([
                 'primary' => Color::Amber,

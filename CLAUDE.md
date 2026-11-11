@@ -49,7 +49,7 @@ docker compose run --rm -it collector-telegram python -m telegram.login
 Không Docker (SQLite + queue database, chi tiết trong `docs/HANDOVER.md` mục 6):
 
 ```bash
-cd app && php artisan test                      # 289 test
+cd app && php artisan test                      # 312 test
 php artisan serve --host=127.0.0.1 --port=8000
 php artisan queue:work --queue=notify,prefilter,default,ai
 php artisan leadradar:eval --engine=keyword     # không gọi AI, miễn phí
