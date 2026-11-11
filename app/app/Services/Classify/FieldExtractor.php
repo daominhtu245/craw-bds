@@ -7,7 +7,7 @@ use App\Services\Text\TermMatcher;
 use Carbon\CarbonInterface;
 
 /**
- * Regex extraction of lead fields from EN/RU text for the keyword classifier:
+ * Regex extraction of lead fields from EN/RU/VI text for the keyword classifier:
  * budget, duration, property type, arrival date, requirements, household.
  * Pure functions on lowercased text; nothing is guessed when no pattern matches.
  */
@@ -43,8 +43,8 @@ class FieldExtractor
         $sep = '\s*(?:-|–|to|до)\s*';
 
         $patterns = [
-            // 15-18 млн / 15tr / 16 triệu / 16m vnd
-            ['/'.$num.'(?:'.$sep.$num.')?\s*(?:млн|mln|million|mil|triệu|trieu|tr\b|m\b)\s*(?:vnd|vnđ|đ|dong|донг\w*)?/u', 'VND', 1_000_000],
+            // 15-18 млн / 15tr / 16 triệu / 16m vnd / 8 củ
+            ['/'.$num.'(?:'.$sep.$num.')?\s*(?:млн|mln|million|mil|triệu|trieu|tr\b|m\b|củ(?![\p{L}]))\s*(?:vnd|vnđ|đ|dong|донг\w*)?/u', 'VND', 1_000_000],
             ['/'.$num.'(?:'.$sep.$num.')?\s*(?:vnd|vnđ|đồng|dong|донг\w*|đ\b)/u', 'VND', 1],
             // $450, $400-500, 450$, 450 usd, 1.2k$
             ['/\$\s?'.$num.'(k)?(?:'.$sep.'\$?\s?'.$num.'(k)?)?/u', 'USD', 1, true],
@@ -96,10 +96,10 @@ class FieldExtractor
         if (preg_match('/'.$n.'(?:\s*(?:-|–|to)\s*\d+)?\s*(?:months?|mos?(?![\p{L}])|мес\p{L}*|tháng)/u', $t, $m)) {
             return $this->toInt($m[1]);
         }
-        if (preg_match('/'.$n.'\s*(?:years?|yrs?(?![\p{L}])|год\p{L}*|лет(?![\p{L}]))/u', $t, $m)) {
+        if (preg_match('/'.$n.'\s*(?:years?|yrs?(?![\p{L}])|год\p{L}*|лет(?![\p{L}])|năm(?![\p{L}])|nam(?![\p{L}]))/u', $t, $m)) {
             return $this->toInt($m[1]) * 12;
         }
-        if (preg_match('/half a year|полгода|пол года/u', $t)) {
+        if (preg_match('/half a year|полгода|пол года|nửa năm|nua nam/u', $t)) {
             return 6;
         }
         if (preg_match('/(?:for|на)\s+(?:a\s+|one\s+)?(?:year|год)\b/u', $t)) {
@@ -114,7 +114,7 @@ class FieldExtractor
     {
         $t = $this->lower($text);
 
-        return preg_match('/\b(\d+|a|one|two|three|few|couple of)\s*(nights?|days?|weeks?)\b|\d+\s*(ноч\w*|дн\w*|недел\w*)|на недел/u', $t) === 1
+        return preg_match('/\b(\d+|a|one|two|three|few|couple of)\s*(nights?|days?|weeks?)\b|\d+\s*(ноч\w*|дн\w*|недел\w*)|на недел|(?<![\p{L}])(\d+|vài|vai|mấy|may)\s*(đêm|ngày|tuần|dem|ngay|tuan)(?![\p{L}])/u', $t) === 1
             && $this->durationMonths($t) === null;
     }
 
@@ -133,12 +133,12 @@ class FieldExtractor
 
         $type = match (true) {
             (bool) preg_match('/\bvillas?\b|вилл/u', $t) => PropertyType::Villa,
-            (bool) preg_match('/\b(house|townhouse)\b|(?<![\p{L}])(дом|домик)(?![\p{L}])/u', $t) => PropertyType::House,
+            (bool) preg_match('/\b(house|townhouse)\b|(?<![\p{L}])(дом|домик)(?![\p{L}])|nhà nguyên căn|nha nguyen can|nhà phố|nha pho/u', $t) => PropertyType::House,
             (bool) preg_match('/\bstudio\b|студи/u', $t) => PropertyType::Studio,
             $bedrooms !== null && $bedrooms >= 3 => PropertyType::ThreeBrPlus,
             $bedrooms === 2 => PropertyType::TwoBr,
             $bedrooms === 1 => PropertyType::OneBr,
-            (bool) preg_match('/\broom\b|(?<![\p{L}])комнат(?:у|а|ы)?(?![\p{L}])/u', $t) => PropertyType::Room,
+            (bool) preg_match('/\broom\b|(?<![\p{L}])комнат(?:у|а|ы)?(?![\p{L}])|phòng trọ|phong tro/u', $t) => PropertyType::Room,
             default => PropertyType::Unknown,
         };
 
@@ -154,8 +154,12 @@ class FieldExtractor
     {
         $t = $this->lower($text);
 
-        if (preg_match('/next month|в следующем месяце/u', $t)) {
+        if (preg_match('/next month|в следующем месяце|tháng sau|thang sau|tháng tới|thang toi/u', $t)) {
             return $postedAt->copy()->addMonthNoOverflow()->startOfMonth()->toDateString();
+        }
+
+        if (($vi = $this->vietnameseArrival($t, $postedAt)) !== null) {
+            return $vi;
         }
 
         $best = null;
@@ -198,6 +202,32 @@ class FieldExtractor
         $local = $postedAt->copy()->setTimezone(config('leadradar.display_timezone'));
         $year = $local->year + ($month < $local->month ? 1 : 0);
         $day = min($day, cal_days_in_month(CAL_GREGORIAN, $month, $year));
+
+        return sprintf('%04d-%02d-%02d', $year, $month, $day);
+    }
+
+    /**
+     * "tháng 12", "đầu tháng 1", "ngày 15 tháng 12", "ngày 15/12". "6 tháng" is a
+     * duration (number before the word), so only "tháng N" counts.
+     */
+    private function vietnameseArrival(string $t, CarbonInterface $postedAt): ?string
+    {
+        $month = null;
+        $day = 1;
+
+        if (preg_match('/(?<![\p{L}])(?:ngày|ngay)\s*([0-3]?\d)\s*\/\s*(1[0-2]|0?[1-9])(?!\d)/u', $t, $m)) {
+            [$day, $month] = [(int) $m[1], (int) $m[2]];
+        } elseif (preg_match('/(?:(?<![\p{L}])(?:ngày|ngay)\s*([0-3]?\d)\s+)?(?<![\p{L}\d])(?:tháng|thang)\s*(1[0-2]|0?[1-9])(?!\d)(?!\s*(?:năm|nam)\b)/u', $t, $m)) {
+            [$day, $month] = [($m[1] ?? '') !== '' ? (int) $m[1] : 1, (int) $m[2]];
+        }
+
+        if ($month === null) {
+            return null;
+        }
+
+        $local = $postedAt->copy()->setTimezone(config('leadradar.display_timezone'));
+        $year = $local->year + ($month < $local->month ? 1 : 0);
+        $day = max(1, min($day, cal_days_in_month(CAL_GREGORIAN, $month, $year)));
 
         return sprintf('%04d-%02d-%02d', $year, $month, $day);
     }

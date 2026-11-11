@@ -114,6 +114,13 @@ Tất cả endpoint cần header `Authorization: Bearer $INGEST_TOKEN` và bị 
 - Prefilter `lang_vi`: tỷ lệ tính theo **từ** có dấu tiếng Việt (> 30%), không theo ký tự (văn bản tiếng Việt thuần chỉ ~25% ký tự có dấu).
 - "Keyword dương mạnh" = keyword có `weight ≥ 2`.
 - Facebook có thêm chế độ đọc bằng **phiên đăng nhập của chính bạn** (`facebook.session` + `facebook.browser`, Playwright), bên cạnh Apify. Chủ dự án quyết định ngày 2026-11-10: dùng cá nhân, phi thương mại. Cách này trái điều khoản và robots.txt của Facebook, tài khoản có thể bị checkpoint hoặc khóa. Giới hạn vẫn giữ: chỉ đọc (không click/gõ/like/comment/join), cuộn chậm, gặp login/checkpoint/CAPTCHA thì dừng (exit 2), cookie nằm trong `data/` (không commit). Đường dẫn JSON chưa kiểm chứng trên trang thật.
+- **Nhận cả khách thuê người Việt** (chủ dự án chốt 2026-11-11, đổi SPEC 1.3 và bước 5 SPEC 8). `PREFILTER_ACCEPT_VI=true` (mặc định); đặt `false` để quay lại hành vi SPEC (loại bài tiếng Việt). Đi kèm:
+  - Keyword tiếng Việt cho prefilter và bộ phân loại keyword, mỗi từ có dấu được seed thêm bản không dấu (`KeywordSeeder::unaccent`).
+  - Nhận diện tiếng Việt không dấu bằng danh sách từ đặc trưng (`LanguageDetector::VI_PLAIN_WORDS`).
+  - `FieldExtractor` đọc "năm", "nửa năm", "tháng 12", "ngày 20/12", "tháng sau", "3 đêm", "nhà nguyên căn", "phòng trọ", "8 củ".
+  - Prompt AI `classify.v2.md` (mặc định), template bản nháp tiếng Việt.
+  - Bộ eval `tests/Fixtures/samples_vi.jsonl` (20 bài tự viết). Lần chạy đầu với keyword: precision 0.83 / recall 0.71; sau khi bổ sung keyword theo 3 bài sai: 1.00 / 1.00 (bộ này không còn "mù").
+- Telegram báo lead cấu hình được trên trang Cài đặt (bot token mã hóa, chat ID group/channel, bật/tắt, gửi thử), `.env` là giá trị dự phòng.
 - Thêm chế độ phân loại bằng keyword (không cần API key) theo yêu cầu: `CLASSIFIER_MODE` / Cài đặt. `keywords.kind` đổi sang string để thêm nhóm `intent_*`, `stage_*`. Chưa có bot Telegram thì job báo lead bỏ qua (ghi log) thay vì báo lỗi.
 
 ## Phase 2 — pipeline

@@ -115,7 +115,7 @@ class ManageSettings extends Page
                         .'Đoạn trong [[ ... ]] bị bỏ nếu có biến rỗng. Không nên để link trong trả lời công khai.')
                     ->collapsible()
                     ->columns(2)
-                    ->schema(collect(['en' => 'Tiếng Anh', 'ru' => 'Tiếng Nga'])->flatMap(fn ($label, $lang) => [
+                    ->schema(collect(['vi' => 'Tiếng Việt', 'en' => 'Tiếng Anh', 'ru' => 'Tiếng Nga'])->flatMap(fn ($label, $lang) => [
                         Textarea::make("templates.{$lang}.public_reply")->label("{$label}: trả lời công khai")->rows(5)->required()->maxLength(2000),
                         Textarea::make("templates.{$lang}.dm")->label("{$label}: tin nhắn riêng")->rows(5)->required()->maxLength(2000),
                     ])->all()),

@@ -22,9 +22,11 @@ class SeederTest extends TestCase
 
         $this->assertSame(11, Area::count());
         $this->assertContains('ан тхыонг', Area::firstWhere('slug', 'an-thuong')->aliases);
-        $this->assertSame(38, Keyword::where('kind', 'positive')->count());
-        $this->assertSame(30, Keyword::where('kind', 'negative')->count());
+        $this->assertSame(80, Keyword::where('kind', 'positive')->count());
+        $this->assertSame(60, Keyword::where('kind', 'negative')->count());
         $this->assertSame(2, Keyword::firstWhere('term', 'ищу')->weight);
+        // Vietnamese terms are seeded with and without diacritics.
+        $this->assertSame(2, Keyword::where('kind', 'positive')->firstWhere('term', 'can thue')->weight);
         $this->assertSame(5, Listing::count());
         $this->assertSame(26000, Setting::get('fx_per_usd')['VND']);
         $this->assertSame(1, User::where('role', UserRole::Admin->value)->count());

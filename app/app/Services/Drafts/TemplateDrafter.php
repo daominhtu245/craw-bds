@@ -114,9 +114,14 @@ class TemplateDrafter
      */
     private function values(Lead $lead, Collection $listings, string $language): array
     {
-        $areaNames = Area::query()->whereIn('slug', (array) $lead->areas)->pluck('name_en', 'slug');
-        $allAreas = Area::query()->whereIn('slug', $listings->pluck('area_slug'))->pluck('name_en', 'slug');
-        $perMonth = $language === 'ru' ? '/мес.' : '/month';
+        $nameColumn = $language === 'vi' ? 'name_vi' : 'name_en';
+        $areaNames = Area::query()->whereIn('slug', (array) $lead->areas)->pluck($nameColumn, 'slug');
+        $allAreas = Area::query()->whereIn('slug', $listings->pluck('area_slug'))->pluck($nameColumn, 'slug');
+        $perMonth = match ($language) {
+            'ru' => '/мес.',
+            'vi' => '/tháng',
+            default => '/month',
+        };
         $best = $listings->first();
 
         return [
@@ -124,7 +129,11 @@ class TemplateDrafter
             'website' => (string) Setting::get('agency_website', ''),
             'area' => collect((array) $lead->areas)->map(fn ($slug) => $areaNames[$slug] ?? null)->filter()->implode(' / '),
             'budget' => $lead->budget_max_usd ? $lead->budget_max_usd.'$' : '',
-            'duration' => $lead->duration_months ? $lead->duration_months.($language === 'ru' ? ' мес.' : ' months') : '',
+            'duration' => $lead->duration_months ? $lead->duration_months.match ($language) {
+                'ru' => ' мес.',
+                'vi' => ' tháng',
+                default => ' months',
+            } : '',
             'arrival' => $lead->arrival_date ? $lead->arrival_date->format('d/m') : '',
             'listing' => $best?->title ?? '',
             'listing_price' => $best ? $best->price_usd.'$' : '',

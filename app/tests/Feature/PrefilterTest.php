@@ -112,10 +112,19 @@ class PrefilterTest extends TestCase
         $this->assertSame(FilterReason::KnownAgent, $this->reasonFor($this->item('Ищу арендаторов на квартиру в центре', ['author_key' => $key])));
     }
 
-    public function test_vietnamese(): void
+    public function test_vietnamese_tenants_pass_and_listings_are_filtered(): void
     {
+        $this->assertNull($this->reasonFor($this->item('Mình cần thuê căn hộ 1 phòng ngủ ở Hải Châu, giá khoảng 8 triệu, ai có thì nhắn mình nhé.')));
+        $this->assertNull($this->reasonFor($this->item('Can thue can ho 2pn gan bien My Khe, o 1 nam, ngan sach 12tr')));
+        $this->assertSame(FilterReason::NegativeKw, $this->reasonFor($this->item('Cho thuê căn hộ studio gần biển Mỹ Khê, đầy đủ nội thất, giá tốt')));
+        $this->assertSame(FilterReason::NegativeKw, $this->reasonFor($this->item('Chinh chu cho thue can ho 1pn, con trong, lh zalo')));
+    }
+
+    public function test_vietnamese_is_dropped_when_turned_off(): void
+    {
+        config(['leadradar.prefilter.accept_vi' => false]);
+
         $this->assertSame(FilterReason::LangVi, $this->reasonFor($this->item('Mình cần thuê căn hộ 1 phòng ngủ ở Hải Châu, giá khoảng 8 triệu, ai có thì nhắn mình nhé.')));
-        $this->assertSame(FilterReason::LangVi, $this->reasonFor($this->item('Cho thuê căn hộ studio gần biển Mỹ Khê, đầy đủ nội thất, giá tốt')));
     }
 
     public function test_negative_keywords(): void

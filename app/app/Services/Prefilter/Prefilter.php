@@ -12,7 +12,7 @@ use App\Services\Text\TextNormalizer;
  * Rule-based prefilter (SPEC 8). Steps run in order; the first failing step wins.
  *
  *   1 too_old  2 too_short  3 duplicate  4 known_agent
- *   5 lang_vi  6 negative_kw  7 no_positive_kw
+ *   5 lang_vi (only when leadradar.prefilter.accept_vi is false)  6 negative_kw  7 no_positive_kw
  *
  * analyzeText() runs only the text steps (2, 5, 6, 7) and powers the
  * dashboard "quick test" box.
@@ -68,7 +68,7 @@ class Prefilter
         $mentionsHousing = $this->mentionsHousing($matchText);
 
         $reason = match (true) {
-            $language === 'vi' => FilterReason::LangVi,
+            $language === 'vi' && ! config('leadradar.prefilter.accept_vi') => FilterReason::LangVi,
             $negativeScore >= (int) config('leadradar.prefilter.negative_score_threshold') && ! $hasStrong => FilterReason::NegativeKw,
             count($positive) === 0 && ! $mentionsHousing => FilterReason::NoPositiveKw,
             default => null,

@@ -101,6 +101,21 @@ class TemplateDraftTest extends TestCase
         $this->assertStringStartsWith("Hi! I saw your post in the group. I'm with Radar Homes.", $dm);
     }
 
+    public function test_vietnamese_lead_gets_vietnamese_template_with_vietnamese_area_names(): void
+    {
+        $vi = $this->matchedLead(['language' => 'vi', 'duration_months' => 6]);
+
+        $this->runJob($vi->id);
+
+        $public = $vi->replyDrafts()->where('variant', 'public_reply')->sole();
+        $dm = $vi->replyDrafts()->where('variant', 'dm')->sole()->body;
+
+        $this->assertSame('vi', $public->language);
+        $this->assertStringStartsWith('Chào bạn! Bên Radar Homes đang có vài căn phù hợp ở khu An Thượng trong tầm 450$/tháng.', $public->body);
+        $this->assertStringContainsString('420$/tháng, An Thượng', $dm);
+        $this->assertStringContainsString('Bạn dự kiến đến 15/12', $dm);
+    }
+
     public function test_russian_lead_gets_russian_template_and_unknown_language_falls_back_to_english(): void
     {
         $ru = $this->matchedLead(['language' => 'ru']);

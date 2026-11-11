@@ -34,6 +34,8 @@ return [
         // Share of Latin words carrying a Vietnamese diacritic (word-based: a
         // per-character ratio is ~25% even for plain Vietnamese text).
         'vi_word_ratio' => (float) env('PREFILTER_VI_RATIO', 0.30),
+        // Owner decision 2026-11-11: Vietnamese tenants are in scope. false = SPEC 8 step 5 (drop Vietnamese posts).
+        'accept_vi' => (bool) env('PREFILTER_ACCEPT_VI', true),
         'negative_score_threshold' => (int) env('PREFILTER_NEGATIVE_THRESHOLD', 2),
         'strong_positive_weight' => (int) env('PREFILTER_STRONG_POSITIVE_WEIGHT', 2),
         'cache_ttl_seconds' => 600,
@@ -42,6 +44,8 @@ return [
             'apartment', 'flat', 'house', 'villa', 'studio', 'room', 'bedroom', 'rent', 'lease', 'landlord', 'condo',
             'accommodation',
             'квартир', 'жиль', 'дом', 'аренд', 'студи', 'комнат', 'сниму', 'снять',
+            'căn hộ', 'can ho', 'chung cư', 'chung cu', 'nhà nguyên căn', 'nha nguyen can', 'phòng trọ', 'phong tro',
+            'thuê nhà', 'thue nha', 'thuê phòng', 'thue phong', 'thuê căn', 'thue can',
         ],
     ],
 
@@ -65,7 +69,7 @@ return [
         'fallback_models' => array_filter(explode(',', (string) env('AI_FALLBACK_MODELS', 'claude-sonnet-5-5,claude-opus-5-5,claude-opus-5,claude-fable-5-1'))),
         'fallback_beta' => 'server-side-fallback-2026-07-01',
         'prompt_versions' => [
-            'classify' => (int) env('AI_PROMPT_CLASSIFY_VERSION', 1),
+            'classify' => (int) env('AI_PROMPT_CLASSIFY_VERSION', 2),
             'reply' => (int) env('AI_PROMPT_REPLY_VERSION', 1),
         ],
         // USD per 1M tokens, for the cost widget and the daily budget.
@@ -92,23 +96,23 @@ return [
         ],
         // Requirement tag => terms (lowercase, matched as word prefixes).
         'requirement_terms' => [
-            'pet_friendly' => ['pet', 'cat', 'dog', 'kitten', 'puppy', 'кошк', 'кот', 'собак', 'питом', 'животн'],
-            'furnished' => ['furnished', 'мебел', 'меблир'],
-            'pool' => ['pool', 'бассейн'],
+            'pet_friendly' => ['pet', 'cat', 'dog', 'kitten', 'puppy', 'кошк', 'кот', 'собак', 'питом', 'животн', 'thú cưng', 'thu cung', 'nuôi mèo', 'nuoi meo', 'nuôi chó', 'nuoi cho'],
+            'furnished' => ['furnished', 'мебел', 'меблир', 'nội thất', 'noi that'],
+            'pool' => ['pool', 'бассейн', 'hồ bơi', 'ho boi', 'bể bơi', 'be boi'],
             'gym' => ['gym', 'спортзал', 'тренажер'],
             'bathtub' => ['bathtub', 'bath tub', 'ванн'],
-            'kitchen' => ['kitchen', 'кухн'],
+            'kitchen' => ['kitchen', 'кухн', 'bếp', 'bep nau'],
             'workspace' => ['workspace', 'desk', 'work from home', 'рабоч'],
             'fast_wifi' => ['wifi', 'wi-fi', 'internet', 'интернет', 'вайфай'],
-            'near_beach' => ['beach', 'near the sea', 'пляж', 'у моря', 'близко к морю'],
-            'quiet' => ['quiet', 'тих'],
-            'sea_view' => ['sea view', 'ocean view', 'вид на море'],
+            'near_beach' => ['beach', 'near the sea', 'пляж', 'у моря', 'близко к морю', 'gần biển', 'gan bien'],
+            'quiet' => ['quiet', 'тих', 'yên tĩnh', 'yen tinh'],
+            'sea_view' => ['sea view', 'ocean view', 'вид на море', 'view biển', 'view bien'],
             'river_view' => ['river view', 'вид на реку'],
-            'family' => ['family', 'kids', 'children', 'child', 'семь', 'дет', 'ребен', 'ребён'],
-            'school_nearby' => ['school', 'школ'],
-            'parking' => ['parking', 'garage', 'парков'],
-            'balcony' => ['balcony', 'балкон'],
-            'washing_machine' => ['washing machine', 'washer', 'laundry', 'стиральн'],
+            'family' => ['family', 'kids', 'children', 'child', 'семь', 'дет', 'ребен', 'ребён', 'gia đình', 'gia dinh', 'con nhỏ', 'con nho'],
+            'school_nearby' => ['school', 'школ', 'trường học', 'truong hoc'],
+            'parking' => ['parking', 'garage', 'парков', 'chỗ để xe', 'cho de xe', 'đậu xe ô tô', 'dau xe o to'],
+            'balcony' => ['balcony', 'балкон', 'ban công', 'ban cong'],
+            'washing_machine' => ['washing machine', 'washer', 'laundry', 'стиральн', 'máy giặt', 'may giat'],
         ],
     ],
 
@@ -123,6 +127,13 @@ return [
             'en' => [
                 'public_reply' => "Hi! {agency} has a few places[[ in {area}]][[ within {budget}/month]] that could fit what you're looking for. Happy to send photos and details by private message.",
                 'dm' => "Hi! I saw your post in the group[[ about a place in {area}]]. I'm with {agency}.\n[[Here are some options that match:\n{listings}\n]]Would you like photos or a quick video call?[[ You're arriving {arrival}, so we can arrange viewings before you land.]][[ More listings: {website}]]",
+            ],
+            'vi' => [
+                'public_reply' => 'Chào bạn! Bên {agency} đang có vài căn phù hợp[[ ở khu {area}]][[ trong tầm {budget}/tháng]]. Mình gửi hình và thông tin chi tiết qua tin nhắn riêng nhé.',
+                'dm' => "Chào bạn, mình thấy bài bạn đăng trong group[[ tìm căn ở khu {area}]]. Mình bên {agency}.
+[[Đây là vài căn có thể hợp với bạn:
+{listings}
+]]Bạn muốn xem thêm hình hay hẹn đi xem trực tiếp không?[[ Bạn dự kiến đến {arrival}, mình có thể sắp xếp xem căn trước.]][[ Xem thêm căn: {website}]]",
             ],
             'ru' => [
                 'public_reply' => 'Здравствуйте! У {agency} есть подходящие варианты[[ в районе {area}]][[ в пределах {budget} в месяц]]. Могу прислать фото и подробности в личные сообщения.',

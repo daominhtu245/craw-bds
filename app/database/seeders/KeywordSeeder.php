@@ -29,6 +29,13 @@ class KeywordSeeder extends Seeder
             'переезжаем' => 2, 'переезжаю' => 2, 'посоветуйте' => 1, 'подскажите' => 1,
             'студию' => 1, 'однушку' => 1, 'двушку' => 1, 'с животными' => 1,
         ],
+        // Owner decision 2026-11-11: Vietnamese tenants are in scope. Unaccented variants are added in upsert().
+        'vi' => [
+            'cần thuê' => 2, 'tìm thuê' => 2, 'muốn thuê' => 2, 'đang tìm' => 2, 'cần tìm' => 2, 'tìm căn' => 2,
+            'tìm nhà' => 2, 'tìm phòng' => 2, 'ai có căn' => 2, 'ai có phòng' => 2, 'ai có nhà' => 2,
+            'thuê dài hạn' => 1, 'ngân sách' => 1, 'tầm giá' => 1, 'căn hộ' => 1, 'chung cư' => 1,
+            'phòng ngủ' => 1, 'chuyển ra đà nẵng' => 2, 'chuyển vào đà nẵng' => 2, 'sang lại' => 1, 'nhượng lại' => 1,
+        ],
     ];
 
     private const NEGATIVE = [
@@ -41,6 +48,10 @@ class KeywordSeeder extends Seeder
         ],
         'ru' => [
             'сдаю', 'сдам', 'сдается', 'свободна', 'свободен', 'пишите в лс', 'цена:', 'бронируйте', 'звоните',
+        ],
+        'vi' => [
+            'cho thuê', 'chính chủ', 'còn trống', 'nhận khách', 'giá thuê:', 'giá:', 'liên hệ', 'lh', 'sđt', 'zalo',
+            'giá chỉ', 'giá tốt', 'miễn phí', 'đặt lịch xem', 'bao phí', 'hotline', 'inbox',
         ],
     ];
 
@@ -64,6 +75,7 @@ class KeywordSeeder extends Seeder
                 'хотим арендовать' => 2, 'арендовать' => 1, 'хотим найти' => 2, 'найти квартиру' => 2, 'кто сдает' => 2,
                 'нужна' => 1, 'нужен' => 1,
             ],
+            'vi' => ['cần thuê' => 2, 'tìm thuê' => 2, 'muốn thuê' => 2, 'đang tìm' => 2, 'cần tìm' => 2, 'tìm căn' => 2, 'tìm nhà' => 2, 'tìm phòng' => 2, 'ai có căn' => 2, 'ai có phòng' => 2, 'ai có nhà' => 2, 'nhờ mọi người' => 1, 'xin giới thiệu' => 1, 'cho mình xin' => 1, 'tư vấn giúp' => 1, 'thuê dài hạn' => 2, 'ở lâu dài' => 1, 'cho thuê không' => 3, 'mình cần' => 1],
         ],
         'intent_handover' => [
             'en' => [
@@ -76,6 +88,7 @@ class KeywordSeeder extends Seeder
                 'передать договор' => 4, 'передам квартиру' => 4, 'переоформить договор' => 3, 'кому передать' => 3,
                 'продолжит аренду' => 4, 'переуступ' => 4, 'возвращаемся' => 1, 'уезжаем' => 1,
             ],
+            'vi' => ['sang lại' => 4, 'nhượng lại' => 4, 'sang nhượng' => 4, 'sang hợp đồng' => 4, 'người thuê tiếp' => 4, 'ở tiếp hợp đồng' => 4, 'để lại cọc' => 2, 'về nước' => 1],
         ],
         'intent_landlord' => [
             'en' => [
@@ -86,6 +99,7 @@ class KeywordSeeder extends Seeder
                 'for more photos' => 2, 'including management fee' => 2,
             ],
             'ru' => ['сдаю' => 3, 'сдам' => 3, 'сдается' => 3, 'сдаётся' => 3, 'свободна с' => 2, 'свободен с' => 2, 'пишите в лс' => 1, 'пишите в личку' => 1],
+            'vi' => ['cho thuê' => 2, 'chính chủ' => 3, 'còn trống' => 2, 'nhận khách' => 2, 'giá thuê:' => 1, 'liên hệ' => 1, 'lh' => 1, 'sđt' => 1, 'cần tìm khách' => 4, 'cần người thuê' => 4, 'tìm người thuê' => 4, 'tìm khách thuê' => 4],
         ],
         'intent_agent' => [
             'en' => [
@@ -99,10 +113,12 @@ class KeywordSeeder extends Seeder
                 'агентство' => 3, 'риелтор' => 3, 'риэлтор' => 3, 'без комиссии' => 3, 'подберём' => 3, 'подберем' => 3, 'большая база' => 3,
                 'помогаем с арендой' => 3, 'подберу' => 3, 'комиссию платит' => 3,
             ],
+            'vi' => ['môi giới' => 3, 'bên em có' => 3, 'bên mình có' => 3, 'em có nhiều căn' => 3, 'nhiều căn' => 2, 'kho căn' => 3, 'giỏ hàng' => 3, 'hỗ trợ tìm' => 3, 'ib em' => 2, 'inbox em' => 2, 'dẫn khách' => 2],
         ],
         'intent_short_term' => [
             'en' => ['hotel' => 2, 'airbnb' => 1, 'homestay' => 2, 'short stay' => 3, 'short-term' => 2, 'for the holidays' => 2],
             'ru' => ['на праздники' => 2, 'посуточно' => 3, 'бронировать' => 1, 'отель' => 2],
+            'vi' => ['theo ngày' => 3, 'theo đêm' => 3, 'ngắn ngày' => 3, 'homestay' => 2, 'khách sạn' => 2, 'vài ngày' => 2, 'du lịch' => 1],
         ],
         'intent_other_city' => [
             'en' => [
@@ -110,18 +126,22 @@ class KeywordSeeder extends Seeder
                 'quy nhon' => 3, 'phu quoc' => 3, 'da lat' => 3, 'dalat' => 3, 'vung tau' => 3,
             ],
             'ru' => ['хошимин' => 3, 'сайгон' => 3, 'ханой' => 3, 'нячанг' => 3, 'фукуок' => 3, 'далат' => 3, 'куинён' => 3],
+            'vi' => ['hà nội' => 3, 'sài gòn' => 3, 'tphcm' => 3, 'tp hcm' => 3, 'hồ chí minh' => 3, 'đà lạt' => 3, 'quy nhơn' => 3, 'phú quốc' => 3, 'vũng tàu' => 3, 'huế' => 3],
         ],
         'stage_urgent' => [
             'en' => ['urgent' => 1, 'asap' => 1, 'this friday' => 1, 'this weekend' => 1, 'this week' => 1, 'tomorrow' => 1, 'move out' => 1, 'right away' => 1, 'have to leave' => 1, 'cancelled' => 1],
             'ru' => ['срочно' => 1, 'с завтрашнего дня' => 1, 'на этой неделе' => 1, 'съезжаем' => 1, 'съехать' => 1, 'завтра' => 1],
+            'vi' => ['gấp' => 1, 'trong tuần' => 1, 'tuần này' => 1, 'ngày mai' => 1, 'càng sớm càng tốt' => 1, 'dọn vào ngay' => 1],
         ],
         'stage_in_city' => [
             'en' => ['already in da nang' => 1, 'been in da nang' => 1, 'currently in da nang' => 1, 'staying at a hotel' => 1, 'staying in a hotel' => 1, 'already here' => 1, 'right now' => 1, 'currently staying' => 1],
             'ru' => ['уже в дананге' => 1, 'уже нахожусь' => 1, 'уже месяц' => 1, 'уже живём' => 1, 'уже живем' => 1, 'мы уже' => 1, 'уже две недели' => 1, 'в отеле' => 1],
+            'vi' => ['đang ở đà nẵng' => 1, 'đã ở đà nẵng' => 1, 'đang ở khách sạn' => 1, 'đang ở tạm' => 1, 'hiện đang ở' => 1],
         ],
         'stage_pre_arrival' => [
             'en' => ['moving to' => 1, 'relocating' => 1, 'arriving' => 1, 'we land' => 1, 'land on' => 1, 'will arrive' => 1, 'coming to da nang' => 1, 'coming back' => 1, "i'll be in" => 1, 'will be in da nang' => 1],
             'ru' => ['переезжаем' => 1, 'переезжаю' => 1, 'планируем переезд' => 1, 'прилетаю' => 1, 'прилетаем' => 1, 'приезжаем' => 1, 'приезжаю' => 1, 'приедем' => 1],
+            'vi' => ['sắp ra đà nẵng' => 1, 'sắp vào đà nẵng' => 1, 'sắp chuyển' => 1, 'chuyển ra đà nẵng' => 1, 'chuyển vào đà nẵng' => 1, 'dự kiến đến' => 1, 'sắp đến' => 1],
         ],
     ];
 
@@ -148,7 +168,25 @@ class KeywordSeeder extends Seeder
         }
     }
 
+    /** Vietnamese terms are also seeded without diacritics: many posts are typed unaccented. */
     private function upsert(string $language, KeywordKind $kind, string $term, int $weight): void
+    {
+        $this->upsertOne($language, $kind, $term, $weight);
+
+        if ($language === 'vi' && ($plain = self::unaccent($term)) !== $term) {
+            $this->upsertOne($language, $kind, $plain, $weight);
+        }
+    }
+
+    public static function unaccent(string $term): string
+    {
+        $term = str_replace(['đ', 'Đ'], ['d', 'D'], $term);
+        $term = (string) \Normalizer::normalize($term, \Normalizer::FORM_D);
+
+        return (string) \Normalizer::normalize((string) preg_replace('/\p{Mn}+/u', '', $term), \Normalizer::FORM_C);
+    }
+
+    private function upsertOne(string $language, KeywordKind $kind, string $term, int $weight): void
     {
         Keyword::query()->updateOrCreate(
             ['language' => $language, 'kind' => $kind->value, 'term' => $term],
