@@ -23,7 +23,7 @@ class SeederTest extends TestCase
         $this->assertSame(11, Area::count());
         $this->assertContains('ан тхыонг', Area::firstWhere('slug', 'an-thuong')->aliases);
         $this->assertSame(38, Keyword::where('kind', 'positive')->count());
-        $this->assertSame(19, Keyword::where('kind', 'negative')->count());
+        $this->assertSame(30, Keyword::where('kind', 'negative')->count());
         $this->assertSame(2, Keyword::firstWhere('term', 'ищу')->weight);
         $this->assertSame(5, Listing::count());
         $this->assertSame(26000, Setting::get('fx_per_usd')['VND']);

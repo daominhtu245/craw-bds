@@ -35,6 +35,9 @@ class KeywordSeeder extends Seeder
         'en' => [
             'for rent', 'available now', 'available from', 'contact me', 'dm for price', 'whatsapp',
             'viewing anytime', 'price:', '/month only', 'booking now',
+            // Landlord/agent listing phrases seen in real Facebook groups (2026-11-11).
+            'price :', 'rent:', 'hot deal', 'negotiable', 'for viewing', 'arrange a viewing',
+            'to view the apartment', 'telegram group', 'minimum stay', 'rental terms', 'message me for',
         ],
         'ru' => [
             'сдаю', 'сдам', 'сдается', 'свободна', 'свободен', 'пишите в лс', 'цена:', 'бронируйте', 'звоните',

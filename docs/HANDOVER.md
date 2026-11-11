@@ -136,7 +136,7 @@ Chạy (Windows): `.\run-local.ps1 forum.expat_com --once`, `.\run-local.ps1 tel
 2. **Telegram (Phase 4)**: chủ dự án lấy `TG_API_ID`/`TG_API_HASH` ở my.telegram.org (dùng tài khoản phụ), tự đăng nhập (OTP), tự join group, thêm nguồn trên dashboard. Sau đó chạy listener, kiểm tra backfill và tin thời gian thực.
 3. **Bot báo lead**: tạo bot qua BotFather, thêm vào group team, điền `TG_BOT_TOKEN` và `TG_TEAM_CHAT_ID`. Kiểm tra tiêu chí "lead hiện trong group team trong vòng 60 giây".
 4. **AI**: khi có `ANTHROPIC_API_KEY`, chạy `php artisan leadradar:eval` (tốn phí, ước tính vài cent cho 60 mẫu). So sánh với `--engine=keyword`.
-5. **Facebook**: phiên trình duyệt đã chạy được (2026-11-11). Còn lại: thêm group có người thuê thật, theo dõi log `facebook group read` (sửa `facebook/extract.py` nếu `stories` > 0 mà `count` = 0), cân nhắc thêm negative keyword cho tin đăng của chủ nhà tiếng Anh. (Hoặc Apify: `facebook.run --once` khi có `APIFY_TOKEN`.)
+5. **Facebook**: phiên trình duyệt đã chạy được (2026-11-11). Còn lại: thêm group có người thuê thật, theo dõi log `facebook group read` (sửa `facebook/extract.py` nếu `stories` > 0 mà `count` = 0), đã thêm 11 negative keyword tiếng Anh cho tin chủ nhà (`KeywordSeeder`). Tin rao có câu tu từ "Looking for an apartment…?" vẫn lọt prefilter vì positive mạnh luôn thắng negative (SPEC 8 bước 6); classifier xử lý tiếp. (Hoặc Apify: `facebook.run --once` khi có `APIFY_TOKEN`.)
 6. **Chất lượng keyword**: theo dõi lead "Không hợp lệ" hoặc bị sót trên dữ liệu thật để bổ sung keyword. Bài mơ hồ (ví dụ "I am thinking about living in Da Nang…") keyword không bắt được; AI làm tốt hơn.
 7. **Triển khai VPS**: theo [docs/DEPLOY.md](DEPLOY.md).
 

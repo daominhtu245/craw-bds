@@ -124,6 +124,26 @@ class PrefilterTest extends TestCase
         $this->assertSame(FilterReason::NegativeKw, $this->reasonFor($this->item('Сдаю квартиру в центре, свободна с декабря, цена: 12 млн, пишите в лс')));
     }
 
+    public static function englishListingTexts(): array
+    {
+        return [
+            'spaced price colon' => ["2BR APARTMENT NEAR AN THUONG\nPrice : 15 million VND / month\nCall the number below to view the apartment"],
+            'hot deal' => ["HOT DEAL - furnished studio, Hai Chau\nRent: 9,000,000 VND/month, negotiable\nMessage me for more photos or to arrange a viewing"],
+            'rental terms' => ["Cozy 1BR by the river\nRental terms: minimum stay 3 months, deposit 1 month\nMore units in my Telegram group"],
+        ];
+    }
+
+    #[DataProvider('englishListingTexts')]
+    public function test_english_listing_phrases(string $text): void
+    {
+        $this->assertSame(FilterReason::NegativeKw, $this->reasonFor($this->item($text)));
+    }
+
+    public function test_tenant_mentioning_negotiable_budget_still_passes(): void
+    {
+        $this->assertNull($this->reasonFor($this->item('Looking for a 2BR near My Khe for a year, budget 600$ negotiable, can arrange a viewing any day')));
+    }
+
     public function test_no_positive_keyword_and_no_housing_word(): void
     {
         $this->assertSame(FilterReason::NoPositiveKw, $this->reasonFor($this->item('Where can I buy a good motorbike helmet in Da Nang?')));
