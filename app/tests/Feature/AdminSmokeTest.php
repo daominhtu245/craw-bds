@@ -36,6 +36,7 @@ class AdminSmokeTest extends TestCase
             'profile' => ['/admin/profile', true],
             'known agents' => ['/admin/known-agents', false],
             'collectors' => ['/admin/collector-heartbeats', false],
+            'failed jobs' => ['/admin/failed-jobs', false],
             'projects' => ['/admin/projects', false],
             'sources' => ['/admin/sources', false],
             'keywords' => ['/admin/keywords', false],
