@@ -4,26 +4,26 @@
 
 ## Chạy bằng Docker
 
-```bash
-cp .env.example .env
-# Điền DB_PASSWORD, DB_ROOT_PASSWORD, INGEST_TOKEN, rồi tạo APP_KEY:
-docker compose run --rm --no-deps app php artisan key:generate --show   # dán kết quả vào APP_KEY
+Triển khai lên server (nginx + certbot có sẵn, cổng chỉnh trong `.env`): xem **[docs/DEPLOY.md](docs/DEPLOY.md)**. Ngắn gọn:
 
-docker compose up -d --build
-docker compose exec app php artisan migrate --seed     # in mật khẩu admin nếu ADMIN_PASSWORD trống
+```bash
+./deploy.sh        # lần 1: tạo .env rồi dừng -> sửa APP_URL, APP_PORT, ADMIN_EMAIL
+./deploy.sh        # tạo mật khẩu/APP_KEY, build, chạy, seed lần đầu
 docker compose exec app php artisan test
-docker compose exec app php artisan leadradar:ingest-file storage/samples.jsonl
 ```
+
+Collector chỉ chạy khi bật trong `COMPOSE_PROFILES` (`forum`, `telegram`, `facebook`).
 
 | Service | Vai trò |
 |---|---|
-| `app` | Laravel (php-fpm + nginx, image `serversideup/php:8.4-fpm-nginx`), cổng `8080`. Tự chạy migration khi khởi động |
+| `app` | Laravel (php-fpm + nginx, image `serversideup/php:8.4-fpm-nginx`), publish ở `APP_PORT` (mặc định `127.0.0.1:8080`). Tự chạy migration và `storage:link` khi khởi động |
 | `queue` | Laravel Horizon: queue `notify`, `prefilter`, `default` và `ai` (tối đa `AI_QUEUE_WORKERS` = 4). UI tại `/horizon`, chỉ admin |
 | `scheduler` | `php artisan schedule:work` |
 | `mysql` | MySQL 8.4, `utf8mb4_unicode_ci` |
 | `redis` | Redis 7, bật AOF để job không mất khi restart |
+| `collector-forum` / `-telegram` / `-facebook` | Chỉ chạy khi có trong `COMPOSE_PROFILES` |
 
-Code được build vào image. Sửa code thì chạy `docker compose up -d --build`.
+Code được build vào image. Cập nhật: `git pull && ./deploy.sh`.
 
 ## Chạy test không cần Docker
 

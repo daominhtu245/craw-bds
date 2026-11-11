@@ -39,8 +39,9 @@ Tài liệu này dành cho người (hoặc phiên Claude Code mới) tiếp t�
 | `191572c` | Sửa crawler Expat.com (tách phần trích dẫn), sửa khớp keyword ngắn |
 | `d67517e`, `414ca74` | `collectors/run-local.ps1`, `.env.local.example` |
 | (2026-11-10) | `package-lock.json`; collector Facebook bằng phiên trình duyệt (`facebook.session`, `facebook.browser`) |
+| (2026-11-11) | Deploy đơn giản: `deploy.sh` (tự tạo mật khẩu/APP_KEY, build, chạy, seed lần đầu, chờ `/up`), mẫu site nginx `deploy/nginx-site.conf.example` cho server có sẵn nginx + certbot, `APP_PORT` mặc định chỉ nghe `127.0.0.1`, collector bật bằng `COMPOSE_PROFILES`; viết lại `docs/DEPLOY.md` |
 | (2026-11-11) | Chuyển các giá trị `.env` nghiệp vụ vào trang Cài đặt (`ConfigOverrides`: AI key mã hóa, model, ngân sách, ngưỡng tiền lọc, hạn lead, tham số website); ô trống = `.env` |
-| (2026-11-11) | Docker cho App #2: build CSS Vite trong `Dockerfile` (bước Node), volume `app-storage` cho ảnh, `storage:link` tự chạy (**chưa chạy thử Docker**, chỉ mô phỏng bước build Node); bản nháp AI có `{site_link}` (prompt `reply.v2`, link luôn ở DM); trang Job bị lỗi; DEPLOY.md mục 4b |
+| (2026-11-11) | Docker cho App #2: build CSS Vite trong `Dockerfile` (bước Node), volume `app-storage` cho ảnh, `storage:link` tự chạy (**chưa chạy thử Docker**, chỉ mô phỏng bước build Node); bản nháp AI có `{site_link}` (prompt `reply.v2`, link luôn ở DM); trang Job bị lỗi |
 | (2026-11-11) | Admin: trang Môi giới đã biết (xem, gỡ, xử lý lại bài bị lọc), Yêu cầu website, Tình trạng collector, Hồ sơ cá nhân (tự đổi mật khẩu); `AdminSmokeTest` mở thử mọi trang theo vai trò |
 | (2026-11-11) | App #2: dự án, ảnh và nội dung VI/EN/RU cho căn hộ; trang công khai `/vi|en|ru`; form yêu cầu (liên hệ mã hóa, chống spam, `?ref=` gắn lead cũ, báo Telegram ngay); Telegram Mini App (kiểm tra initData); `{site_link}` trong bản nháp. Xem `docs/APP2.md` |
 | (2026-11-11) | Nhận khách Việt (prefilter, keyword VI có/không dấu, prompt `classify.v2`, template VI, eval `samples_vi.jsonl`); cấu hình Telegram trên trang Cài đặt |
@@ -98,7 +99,7 @@ Danh sách đầy đủ ở README → "Khác biệt so với SPEC". Các điể
 
 ### Cách A: Docker (hướng chính theo SPEC, **chưa từng chạy thử**)
 
-Làm theo README → "Chạy bằng Docker". Nếu lỗi, sửa và ghi lại vào README. Đây là việc đầu tiên nên làm trên máy mới.
+Chạy `./deploy.sh` (chi tiết trong [docs/DEPLOY.md](DEPLOY.md)). Nếu lỗi, sửa và ghi lại vào DEPLOY.md mục 9.
 
 ### Cách B: Không Docker (đã chạy thật trên Windows)
 
@@ -146,7 +147,7 @@ Chạy (Windows): `.\run-local.ps1 forum.expat_com --once`, `.\run-local.ps1 tel
 6. **Chất lượng keyword**: theo dõi lead "Không hợp lệ" hoặc bị sót trên dữ liệu thật để bổ sung keyword. Bài mơ hồ (ví dụ "I am thinking about living in Da Nang…") keyword không bắt được; AI làm tốt hơn.
 7. **App #2 ngoài thực tế**: nhập dự án/căn thật (ảnh, giá, chính sách từ đối tác), điền nút chat ở Cài đặt; Mini App cần VPS có HTTPS rồi cấu hình Menu Button ở @BotFather (`docs/APP2.md` mục 5). Chưa thử Mini App trong Telegram thật (chỉ test chữ ký initData bằng dữ liệu tự tạo).
 8. **Reddit và Threads** (chủ dự án chốt 2026-11-11, xem CLAUDE.md): đã có phần đăng nhập/nạp cookie. Còn lại: chủ dự án đăng nhập (`reddit.session`, `threads.session`), soi dữ liệu trang thật [VERIFY], rồi viết `reddit/browser.py` + `extract.py` (đọc theo subreddit, `meta.query` tùy chọn) và `threads/browser.py` + `extract.py` (đọc kết quả tìm kiếm theo từ khóa), test bằng fixture tự viết.
-9. **Triển khai VPS**: theo [docs/DEPLOY.md](DEPLOY.md).
+9. **Triển khai VPS**: theo [docs/DEPLOY.md](DEPLOY.md) (`./deploy.sh` + site nginx + certbot). Chưa từng chạy Docker thật: lần đầu theo dõi `docker compose logs -f app`.
 
 ## 8. Lưu ý kỹ thuật cho người code tiếp
 
