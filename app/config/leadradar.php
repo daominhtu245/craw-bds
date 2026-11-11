@@ -70,7 +70,7 @@ return [
         'fallback_beta' => 'server-side-fallback-2026-07-01',
         'prompt_versions' => [
             'classify' => (int) env('AI_PROMPT_CLASSIFY_VERSION', 2),
-            'reply' => (int) env('AI_PROMPT_REPLY_VERSION', 1),
+            'reply' => (int) env('AI_PROMPT_REPLY_VERSION', 2),
         ],
         // USD per 1M tokens, for the cost widget and the daily budget.
         'pricing' => [

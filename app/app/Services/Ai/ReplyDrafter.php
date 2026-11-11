@@ -7,6 +7,7 @@ use App\Models\Lead;
 use App\Models\ReplyDraft;
 use App\Models\Setting;
 use App\Services\Privacy\PiiMasker;
+use App\Services\Site\SiteLinks;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -22,6 +23,7 @@ class ReplyDrafter
         private readonly ClaudeClient $client,
         private readonly PromptRepository $prompts,
         private readonly PiiMasker $masker,
+        private readonly SiteLinks $siteLinks,
     ) {}
 
     /** @return Collection<int, ReplyDraft> */
@@ -30,10 +32,12 @@ class ReplyDrafter
         $lead->loadMissing(['rawItem.source', 'matchedListings']);
         $listings = $lead->matchedListings->take(3);
 
+        $siteLink = $this->siteLinks->forLead($lead, $listings->first(), (string) $lead->language);
         $system = $this->prompts->render('reply', [
             'language' => $lead->language,
             'agency_name' => (string) Setting::get('agency_name', 'our agency'),
             'agency_website' => (string) Setting::get('agency_website', ''),
+            'site_link' => $siteLink,
         ]);
 
         $model = (string) config('leadradar.ai.model_draft');
@@ -48,12 +52,18 @@ class ReplyDrafter
 
         $listingIds = $listings->pluck('id')->all();
 
-        return DB::transaction(function () use ($lead, $result, $listingIds) {
+        $bodies = $this->withSiteLink(
+            trim((string) ($result->input['public_reply'] ?? '')),
+            trim((string) ($result->input['dm'] ?? '')),
+            $siteLink,
+        );
+
+        return DB::transaction(function () use ($lead, $result, $listingIds, $bodies) {
             $drafts = collect(['public_reply', 'dm'])->map(fn (string $variant) => $lead->replyDrafts()->create([
                 'variant' => $variant,
                 'language' => $lead->language,
                 // Defence in depth: the prompt forbids phone numbers, mask anyway.
-                'body' => $this->masker->mask(trim((string) ($result->input[$variant] ?? ''))),
+                'body' => $this->masker->mask($bodies[$variant]),
                 'listing_ids' => $listingIds,
                 'model' => $result->model,
                 'created_by' => 'system',
@@ -67,6 +77,25 @@ class ReplyDrafter
 
             return $drafts;
         });
+    }
+
+    /**
+     * The tracking link belongs in the DM only, whatever the model did.
+     *
+     * @return array{public_reply: string, dm: string}
+     */
+    private function withSiteLink(string $public, string $dm, string $link): array
+    {
+        if ($link === '') {
+            return ['public_reply' => $public, 'dm' => $dm];
+        }
+
+        $public = trim(preg_replace('/\s*'.preg_quote($link, '/').'\s*/u', ' ', $public) ?? $public);
+        if (! str_contains($dm, $link)) {
+            $dm = rtrim($dm)."\n".$link;
+        }
+
+        return ['public_reply' => $public, 'dm' => $dm];
     }
 
     /** @return array<string, mixed> */

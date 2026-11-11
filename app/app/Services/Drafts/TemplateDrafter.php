@@ -8,7 +8,7 @@ use App\Models\Lead;
 use App\Models\Listing;
 use App\Models\ReplyDraft;
 use App\Models\Setting;
-use App\Services\Site\LeadRef;
+use App\Services\Site\SiteLinks;
 use App\Services\Privacy\PiiMasker;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -146,24 +146,9 @@ class TemplateDrafter
                 $perMonth,
                 isset($allAreas[$l->area_slug]) ? ', '.$allAreas[$l->area_slug] : '',
             ))->implode("\n"),
-            'site_link' => $this->siteLink($lead, $best, $language),
+            'site_link' => app(SiteLinks::class)->forLead($lead, $best, $language),
         ];
     }
 
-    /** Public site link with ?ref=, to the best matched public listing when there is one. */
-    private function siteLink(Lead $lead, ?Listing $best, string $language): string
-    {
-        if (! config('leadradar.site.enabled')) {
-            return '';
-        }
 
-        $locale = in_array($language, (array) config('leadradar.site.locales'), true) ? $language : 'en';
-        $ref = LeadRef::encode($lead->id);
-
-        if ($best !== null && $best->is_public && $best->slug) {
-            return route('site.listing', ['locale' => $locale, 'listing' => $best->slug, 'ref' => $ref]);
-        }
-
-        return route('site.index', ['locale' => $locale, 'ref' => $ref]);
-    }
 }

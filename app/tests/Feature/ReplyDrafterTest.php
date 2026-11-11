@@ -67,6 +67,36 @@ class ReplyDrafterTest extends TestCase
         $this->assertSame('record_reply', $tool['name']);
     }
 
+    public function test_site_link_goes_in_the_dm_only(): void
+    {
+        $this->seed([SettingSeeder::class, ListingSeeder::class]);
+        $lead = $this->makeLead();
+        $listing = Listing::firstWhere('title', 'Sea Breeze 1BR');   // public demo listing
+        $lead->matchedListings()->attach($listing->id, ['match_score' => 85]);
+        $link = app(\App\Services\Site\SiteLinks::class)->forLead($lead, $listing, 'en');
+
+        // The model forgets the link in the DM and puts it in the public reply.
+        config(['leadradar.ai.api_key' => 'test-key']);
+        $captured = null;
+        $mock = Mockery::mock(ClaudeClient::class);
+        $mock->shouldReceive('callTool')->andReturnUsing(function (...$args) use (&$captured, $link) {
+            $captured = $args;
+
+            return new ToolCallResult(
+                input: ['public_reply' => "An Thuong is lovely. See {$link} for photos.", 'dm' => 'Hello! Happy to arrange a video call.'],
+                model: 'claude-sonnet-5-5', inputTokens: 1, outputTokens: 1, stopReason: 'tool_use',
+            );
+        });
+        $this->app->instance(ClaudeClient::class, $mock);
+
+        $drafts = app(ReplyDrafter::class)->draft($lead);
+
+        $this->assertStringContainsString($link, $captured[1]);   // given to the model (prompt v2)
+        $this->assertStringContainsString('/en/apartments/'.$listing->slug.'?ref=', $link);
+        $this->assertStringNotContainsString($link, $drafts->firstWhere('variant', 'public_reply')->body);
+        $this->assertStringEndsWith($link, $drafts->firstWhere('variant', 'dm')->body);
+    }
+
     public function test_job_skips_when_drafts_exist_unless_forced(): void
     {
         $this->seed(SettingSeeder::class);
