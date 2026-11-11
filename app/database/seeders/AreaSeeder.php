@@ -17,7 +17,7 @@ class AreaSeeder extends Seeder
             ['my-khe', 'My Khe', 'Mỹ Khê', ['mỹ khê', 'my khe', 'my khe beach', 'ми кхе', 'микхе']],
             ['son-tra', 'Son Tra', 'Sơn Trà', ['sơn trà', 'son tra', 'son tra peninsula', 'шонча', 'сон тра']],
             ['ngu-hanh-son', 'Ngu Hanh Son', 'Ngũ Hành Sơn', ['ngũ hành sơn', 'ngu hanh son', 'marble mountains', 'нгуханьшон', 'мраморные горы']],
-            ['hai-chau', 'Hai Chau', 'Hải Châu', ['hải châu', 'hai chau', 'city center', 'downtown', 'han river', 'хайчау', 'центр']],
+            ['hai-chau', 'Hai Chau', 'Hải Châu', ['hải châu', 'hai chau', 'city center', 'downtown', 'han river', 'хайчау', 'хай чау', 'центр']],
             ['thanh-khe', 'Thanh Khe', 'Thanh Khê', ['thanh khê', 'thanh khe', 'тхань кхе']],
             ['lien-chieu', 'Lien Chieu', 'Liên Chiểu', ['liên chiểu', 'lien chieu', 'nam o', 'льен тьеу']],
             ['hoa-xuan', 'Hoa Xuan', 'Hòa Xuân', ['hòa xuân', 'hoa xuan', 'хоа суан']],

@@ -28,6 +28,7 @@ class AreaResolverTest extends TestCase
             'no diacritics uppercase' => [['SON TRA'], ['son-tra']],
             'russian alias' => [['Ан Тхыонг'], ['an-thuong']],
             'russian alias with й' => [['Хойан'], ['hoi-an']],
+            'russian two-word alias' => [['в районе Хай Чау'], ['hai-chau']],
             'nickname' => [['Marble Mountains'], ['ngu-hanh-son']],
             'phrase containing alias' => [['near My Khe beach area'], ['my-khe']],
             'slug' => [['fpt-city'], ['fpt-city']],
