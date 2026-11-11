@@ -18,6 +18,9 @@ x-app: &app
     PHP_OPCACHE_ENABLE: "1"
     # Code is baked into the image; restart containers after rebuilding.
     PHP_OPCACHE_VALIDATE_TIMESTAMPS: "1"
+  # Uploaded listing photos (App #2) and other files in storage/app survive rebuilds.
+  volumes:
+    - app-storage:/var/www/html/storage/app
   depends_on:
     mysql:
       condition: service_healthy
@@ -34,6 +37,8 @@ services:
       <<: *app-env
       AUTORUN_ENABLED: "true"
       AUTORUN_LARAVEL_MIGRATION: "true"
+      # public/storage -> storage/app/public, for listing photos on the public site.
+      AUTORUN_LARAVEL_STORAGE_LINK: "true"
       # Never cache config: a cached config would make `php artisan test`
       # ignore phpunit.xml and run RefreshDatabase against the real MySQL.
       AUTORUN_LARAVEL_CONFIG_CACHE: "false"
@@ -145,3 +150,4 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  app-storage:

@@ -14,3 +14,4 @@ bootstrap/cache/*.php
 database/database.sqlite
 .phpunit.cache
 .phpunit.result.cache
+public/storage

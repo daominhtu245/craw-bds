@@ -31,7 +31,7 @@ Sửa `.env`:
 | `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `INGEST_TOKEN` | chuỗi ngẫu nhiên dài: `openssl rand -hex 32` |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | tài khoản admin đầu tiên |
 | `ANTHROPIC_API_KEY`, `AI_DAILY_BUDGET_USD` | key thật, ngân sách/ngày |
-| `TG_BOT_TOKEN`, `TG_TEAM_CHAT_ID` | bot báo lead (thêm bot vào group team trước) |
+| `TG_BOT_TOKEN`, `TG_TEAM_CHAT_ID` | bot báo lead (thêm bot vào group team trước). Cũng nhập được ở **Cài đặt → Thông báo Telegram**; giá trị trên dashboard được ưu tiên |
 | `TG_API_ID`, `TG_API_HASH` | tài khoản listener riêng (xem `collectors/README.md`) |
 | `APIFY_TOKEN` | nếu dùng Facebook |
 | `CRAWLER_USER_AGENT` | có email liên hệ thật |
@@ -66,6 +66,17 @@ sudo systemctl reload caddy
 
 Dashboard: `https://radar.example.com/admin`. Horizon (chỉ admin): `/horizon`.
 
+## 4b. App #2: trang căn hộ công khai và Telegram Mini App
+
+Chi tiết: [APP2.md](APP2.md).
+
+- Trang công khai nằm ở **gốc tên miền**: `https://radar.example.com/` → `/vi`, `/en`, `/ru`. Dashboard vẫn ở `/admin`. Muốn tắt trang công khai: `SITE_ENABLED=false`.
+- `APP_URL` **phải** là tên miền HTTPS thật: link ảnh căn hộ, link trong bản nháp (`{site_link}`) và nút "Mở trên dashboard" trong tin Telegram đều lấy từ đây.
+- CSS của trang công khai được build trong `Dockerfile` (bước `assets`, Node 22), không cần chạy `npm` trên VPS.
+- Ảnh căn hộ lưu trong volume `app-storage` (`storage/app`), không mất khi build lại image. Container `app` tự chạy `storage:link` khi khởi động (`AUTORUN_LARAVEL_STORAGE_LINK`).
+- Telegram Mini App: sau khi có HTTPS, vào @BotFather → bot báo lead (hoặc bot riêng có token trong **Cài đặt**) → **Bot Settings → Menu Button** → URL `https://radar.example.com/vi`.
+- Nhập dữ liệu: **Dự án**, **Kho căn hộ → Website (App #2)**, **Cài đặt → Website (App #2)** (nút Zalo/Telegram/WhatsApp/SĐT).
+
 ## 5. Vận hành
 
 | Việc | Lệnh / ghi chú |
@@ -76,7 +87,9 @@ Dashboard: `https://radar.example.com/admin`. Horizon (chỉ admin): `/horizon`.
 | Cảnh báo | Mỗi 5 phút: collector im lặng > 30 phút, hoặc nguồn "Quan trọng" > 24 giờ không có item |
 | Giờ yên lặng | Đổi trong **Cài đặt**; lead `urgent` vẫn báo ngay, còn lại gom 1 tin sau giờ yên lặng |
 | Ngân sách AI | Hết ngân sách thì job AI tạm dừng tới 0h (giờ VN), team nhận 1 cảnh báo |
-| Cập nhật code | `git pull && docker compose up -d --build && docker compose exec app php artisan migrate --force` |
+| Cập nhật code | `git pull && docker compose up -d --build && docker compose exec app php artisan migrate --force` (CSS trang công khai được build lại trong image) |
+| Job bị lỗi | Dashboard → **Job bị lỗi** (chạy lại / xóa), hoặc `/horizon` |
+| Tình trạng collector | Dashboard → **Tình trạng collector** |
 
 ### Sao lưu MySQL hằng ngày
 
@@ -87,6 +100,13 @@ crontab -e
 ```
 
 File `data/telegram.session` cũng cần sao lưu riêng (mất thì phải đăng nhập lại), và **không bao giờ** commit lên git.
+
+Ảnh căn hộ (volume `app-storage`):
+
+```bash
+# 02:45 mỗi ngày, giữ 14 bản
+45 2 * * * cd ~/expat-lead-radar && docker compose exec -T app tar -czf - -C /var/www/html/storage/app public > ~/backups/photos-$(date +\%F).tar.gz && find ~/backups -name 'photos-*.tar.gz' -mtime +14 -delete
+```
 
 ### Build gọn cho production (tùy chọn)
 
