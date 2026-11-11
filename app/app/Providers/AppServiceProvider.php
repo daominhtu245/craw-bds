@@ -30,5 +30,9 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute((int) config('leadradar.ingest.rate_limit_per_minute'))->by('collector:'.$key);
         });
+
+        // Public inquiry form (App #2): a few requests per visitor per hour.
+        RateLimiter::for('inquiries', fn (Request $request) => Limit::perHour((int) config('leadradar.site.inquiry_rate_limit_per_hour'))
+            ->by('inquiry:'.$request->ip()));
     }
 }

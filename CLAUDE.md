@@ -26,6 +26,7 @@ Nguồn sự thật duy nhất là `SPEC.md`. Đọc lại phần liên quan tr�
 
 - KHÔNG viết code tự động gửi tin nhắn, comment, DM, join group hay tạo tài khoản trên bất kỳ mạng xã hội nào. Telegram listener chỉ đọc.
 - KHÔNG lưu SĐT, email, ảnh, ID người dùng dạng thô. Che SĐT và email trước khi lưu (SPEC mục 15).
+  - Ngoại lệ duy nhất do chủ dự án chốt (2026-11-11): họ tên và liên hệ **khách tự nhập** vào form App #2 (website / Telegram Mini App), có tick đồng ý, được lưu **mã hóa** (`inquiries.name`, `inquiries.contact`, cast `encrypted`), chỉ hiện cho sale trên dashboard và trong tin Telegram báo sale, tự xóa sau `INQUIRY_CONTACT_DAYS` (mặc định 90). Không áp dụng cho dữ liệu thu thập từ mạng xã hội. Không lưu Telegram user ID của khách dùng Mini App.
 - KHÔNG tạo chức năng export hàng loạt dữ liệu lead.
 - KHÔNG vượt CAPTCHA, không bỏ qua robots.txt, không bỏ qua rate limit.
   - Ngoại lệ do chủ dự án chốt: đọc bằng phiên đăng nhập của chủ dự án (dùng cá nhân) cho đúng 3 nguồn: Facebook (`collectors/facebook/browser.py`, 2026-11-10), Reddit (`collectors/reddit/browser.py`) và Threads (`collectors/threads/browser.py`) (2026-11-11; Reddit API cần duyệt theo Responsible Builder Policy). Vẫn phải chỉ đọc, chậm, và dừng khi gặp login/checkpoint/CAPTCHA (`common/browser_session.py`). Không mở rộng ngoại lệ này sang nguồn khác nếu chủ dự án chưa chốt.
@@ -48,10 +49,10 @@ docker compose run --rm -it collector-telegram python -m telegram.login
 Không Docker (SQLite + queue database, chi tiết trong `docs/HANDOVER.md` mục 6):
 
 ```bash
-cd app && php artisan test                      # 239 test
+cd app && php artisan test                      # 289 test
 php artisan serve --host=127.0.0.1 --port=8000
 php artisan queue:work --queue=notify,prefilter,default,ai
 php artisan leadradar:eval --engine=keyword     # không gọi AI, miễn phí
-cd collectors && .venv/Scripts/python -m pytest -q   # 58 test
+cd collectors && .venv/Scripts/python -m pytest -q   # 68 test
 .\run-local.ps1 forum.expat_com --once          # Windows, đọc collectors/.env.local
 ```

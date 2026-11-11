@@ -15,8 +15,8 @@ class RetentionCommand extends Command
     {
         $result = $retention->run();
 
-        $this->table(['raw_items deleted', 'leads deleted', 'won anonymised'], [[
-            $result['raw_items'], $result['leads'], $result['anonymised'],
+        $this->table(['raw_items deleted', 'leads deleted', 'won anonymised', 'inquiry contacts erased'], [[
+            $result['raw_items'], $result['leads'], $result['anonymised'], $result['inquiry_contacts'],
         ]]);
 
         return self::SUCCESS;

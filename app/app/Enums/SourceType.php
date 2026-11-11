@@ -11,6 +11,8 @@ enum SourceType: string implements HasLabel
     case Forum = 'forum';
     case Reddit = 'reddit';
     case Threads = 'threads';
+    // Inquiry form on the public site / Telegram Mini App (App #2). Never sent by collectors.
+    case Website = 'website';
 
     /** @return list<string> */
     public static function values(): array

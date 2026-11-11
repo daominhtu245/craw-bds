@@ -4,6 +4,7 @@ namespace App\Services\Privacy;
 
 use App\Enums\LeadStatus;
 use App\Enums\RawItemStatus;
+use App\Models\Inquiry;
 use App\Models\Lead;
 use App\Models\RawItem;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Log;
  * 2. leads new / assigned / lost / invalid past expires_at: lead, raw item,
  *    drafts, matches and activities deleted (FK cascades).
  * 3. won leads: kept, but the original text is anonymised after 180 days.
+ * 4. inquiries (App #2): the name and contact a customer typed in are erased
+ *    after leadradar.site.contact_retention_days (default 90).
  */
 class DataRetention
 {
@@ -25,13 +28,14 @@ class DataRetention
 
     public const ANONYMISED_TEXT = '[đã ẩn danh]';
 
-    /** @return array{raw_items: int, leads: int, anonymised: int} */
+    /** @return array{raw_items: int, leads: int, anonymised: int, inquiry_contacts: int} */
     public function run(): array
     {
         $result = [
             'raw_items' => $this->purgeRawItems(),
             'leads' => $this->purgeExpiredLeads(),
             'anonymised' => $this->anonymiseWonLeads(),
+            'inquiry_contacts' => $this->purgeInquiryContacts(),
         ];
 
         Log::info('retention.done', $result + ['job' => 'DataRetention']);
@@ -73,6 +77,14 @@ class DataRetention
             });
 
         return $deleted;
+    }
+
+    public function purgeInquiryContacts(): int
+    {
+        return Inquiry::query()
+            ->whereNull('contact_purged_at')
+            ->where('created_at', '<', now()->subDays((int) config('leadradar.site.contact_retention_days')))
+            ->update(['name' => null, 'contact' => null, 'contact_purged_at' => now(), 'updated_at' => now()]);
     }
 
     public function anonymiseWonLeads(): int

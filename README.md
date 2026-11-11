@@ -120,6 +120,7 @@ Tất cả endpoint cần header `Authorization: Bearer $INGEST_TOKEN` và bị 
   - `FieldExtractor` đọc "năm", "nửa năm", "tháng 12", "ngày 20/12", "tháng sau", "3 đêm", "nhà nguyên căn", "phòng trọ", "8 củ".
   - Prompt AI `classify.v2.md` (mặc định), template bản nháp tiếng Việt.
   - Bộ eval `tests/Fixtures/samples_vi.jsonl` (20 bài tự viết). Lần chạy đầu với keyword: precision 0.83 / recall 0.71; sau khi bổ sung keyword theo 3 bài sai: 1.00 / 1.00 (bộ này không còn "mù").
+- **App #2: trang căn hộ công khai + Telegram Mini App** (chủ dự án chốt 2026-11-11, ngoài SPEC): `/vi`, `/en`, `/ru`, form gửi yêu cầu tạo lead nguồn `website` và báo Telegram ngay. Họ tên và liên hệ khách tự nhập được lưu mã hóa, xóa sau 90 ngày (ngoại lệ ghi trong CLAUDE.md). Bỏ hẳn ý tưởng "bot tự nhắn tin cho người đăng bài". Chi tiết: [docs/APP2.md](docs/APP2.md).
 - Telegram báo lead cấu hình được trên trang Cài đặt (bot token mã hóa, chat ID group/channel, bật/tắt, gửi thử), `.env` là giá trị dự phòng.
 - Thêm chế độ phân loại bằng keyword (không cần API key) theo yêu cầu: `CLASSIFIER_MODE` / Cài đặt. `keywords.kind` đổi sang string để thêm nhóm `intent_*`, `stage_*`. Chưa có bot Telegram thì job báo lead bỏ qua (ghi log) thay vì báo lỗi.
 

@@ -31,6 +31,27 @@ class LeadInfolist
                         TextEntry::make('summary_vi')->label('Tóm tắt')->columnSpanFull(),
                     ]),
 
+                // App #2: the customer filled in the form on the public site / Mini App.
+                Section::make('Khách gửi yêu cầu (website / Mini App)')
+                    ->columnSpanFull()
+                    ->columns(4)
+                    ->visible(fn (Lead $record) => $record->inquiries()->exists())
+                    ->schema([
+                        TextEntry::make('inquiry_name')->label('Họ tên')
+                            ->state(fn (Lead $record) => $record->inquiries()->first()?->name)->placeholder('Đã xóa theo hạn lưu'),
+                        TextEntry::make('inquiry_contact')->label('Liên hệ')->copyable()
+                            ->state(fn (Lead $record) => ($i = $record->inquiries()->first()) && $i->contact
+                                ? ucfirst($i->contact_channel).': '.$i->contact
+                                : null)
+                            ->placeholder('Đã xóa theo hạn lưu'),
+                        TextEntry::make('inquiry_listing')->label('Căn quan tâm')
+                            ->state(fn (Lead $record) => $record->inquiries()->first()?->listing?->title)->placeholder('—'),
+                        TextEntry::make('inquiry_at')->label('Gửi lúc')
+                            ->state(fn (Lead $record) => $record->inquiries()->first()?->created_at)->dateTime('d/m/Y H:i'),
+                        TextEntry::make('inquiry_message')->label('Ghi chú của khách')->columnSpanFull()
+                            ->state(fn (Lead $record) => $record->inquiries()->first()?->message)->placeholder('—'),
+                    ]),
+
                 Section::make('Bài gốc')
                     ->columnSpan(2)
                     ->schema([

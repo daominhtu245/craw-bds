@@ -50,6 +50,12 @@ class Lead extends Model
         return $this->hasMany(LeadActivity::class);
     }
 
+    /** Requests the customer sent through the public site / Mini App (App #2). */
+    public function inquiries(): HasMany
+    {
+        return $this->hasMany(Inquiry::class)->latest('id');
+    }
+
     public function replyDrafts(): HasMany
     {
         return $this->hasMany(ReplyDraft::class);

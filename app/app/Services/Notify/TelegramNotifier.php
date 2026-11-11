@@ -4,6 +4,7 @@ namespace App\Services\Notify;
 
 use App\Enums\LeadIntent;
 use App\Enums\LeadStage;
+use App\Models\Inquiry;
 use App\Models\Lead;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -23,7 +24,7 @@ class TelegramNotifier
         'unknown' => 'chưa rõ',
     ];
 
-    private const SOURCE_TYPES = ['telegram' => 'Telegram', 'facebook' => 'Facebook', 'forum' => 'Forum', 'reddit' => 'Reddit', 'threads' => 'Threads'];
+    private const SOURCE_TYPES = ['telegram' => 'Telegram', 'facebook' => 'Facebook', 'forum' => 'Forum', 'reddit' => 'Reddit', 'threads' => 'Threads', 'website' => 'Website'];
 
     public function __construct(private readonly TelegramConfig $config) {}
 
@@ -31,6 +32,62 @@ class TelegramNotifier
     {
         [$text, $buttons] = $this->leadMessage($lead);
         $this->send($text, $buttons);
+    }
+
+    public function sendInquiry(Inquiry $inquiry): void
+    {
+        [$text, $buttons] = $this->inquiryMessage($inquiry);
+        $this->send($text, $buttons);
+    }
+
+    /**
+     * Request from the public site / Mini App. Includes the contact the customer
+     * typed in (they consented to be contacted).
+     *
+     * @return array{0: string, 1: list<array{text: string, url: string}>}
+     */
+    public function inquiryMessage(Inquiry $inquiry): array
+    {
+        $inquiry->loadMissing(['lead', 'listing']);
+        $language = strtolower($inquiry->locale);
+        $via = $inquiry->source === 'telegram_miniapp' ? 'Telegram Mini App' : 'Website';
+        $attached = $inquiry->ref !== null && $inquiry->lead !== null;
+
+        $lines = [
+            sprintf('📩 <b>Khách gửi yêu cầu</b> · %s %s · %s%s',
+                self::FLAGS[$language] ?? '🌐', strtoupper($language), $via,
+                $attached ? ' · từ lead #'.$inquiry->lead_id : ''),
+            sprintf('👤 %s', $this->e($inquiry->name ?: '—')),
+            sprintf('📞 %s: <code>%s</code>', ucfirst($inquiry->contact_channel), $this->e($inquiry->contact ?: '—')),
+        ];
+
+        if ($inquiry->listing) {
+            $lines[] = '🏠 '.$this->e($inquiry->listing->title).' – '.$inquiry->listing->price_usd.'$';
+        }
+
+        $details = array_filter([
+            $inquiry->arrival_date ? 'Đến '.$inquiry->arrival_date->format('d/m/Y') : null,
+            $inquiry->duration_months ? $inquiry->duration_months.' tháng' : null,
+            $inquiry->budget_usd ? '≤ '.$inquiry->budget_usd.'$' : null,
+        ]);
+        if ($details !== []) {
+            $lines[] = '🗓 '.implode(' · ', $details);
+        }
+        if ($inquiry->message) {
+            $lines[] = '📝 '.$this->e(mb_substr($inquiry->message, 0, 500));
+        }
+
+        $buttons = [];
+        if ($inquiry->lead_id !== null) {
+            $url = str_replace('{id}', (string) $inquiry->lead_id, (string) config('leadradar.notify.dashboard_lead_url'));
+            if ($this->isPublicUrl($url)) {
+                $buttons[] = ['text' => 'Mở trên dashboard', 'url' => $url];
+            } else {
+                $lines[] = sprintf('<a href="%s">Mở trên dashboard</a>', $this->e($url));
+            }
+        }
+
+        return [implode("\n", $lines), $buttons];
     }
 
     /**

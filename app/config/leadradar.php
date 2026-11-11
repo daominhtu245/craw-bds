@@ -118,7 +118,7 @@ return [
 
     // Reply drafts without AI (keyword mode, no key, or AI failure in "auto").
     // Admins edit them on the Settings page (settings.reply_templates); these are the defaults.
-    // Placeholders: {agency} {website} {area} {budget} {duration} {arrival} {listing} {listing_price} {listings}
+    // Placeholders: {agency} {website} {area} {budget} {duration} {arrival} {listing} {listing_price} {listings} {site_link}
     // [[ ... ]] is dropped when any placeholder inside it is empty.
     'drafts' => [
         'template_model' => 'template',
@@ -126,20 +126,37 @@ return [
         'templates' => [
             'en' => [
                 'public_reply' => "Hi! {agency} has a few places[[ in {area}]][[ within {budget}/month]] that could fit what you're looking for. Happy to send photos and details by private message.",
-                'dm' => "Hi! I saw your post in the group[[ about a place in {area}]]. I'm with {agency}.\n[[Here are some options that match:\n{listings}\n]]Would you like photos or a quick video call?[[ You're arriving {arrival}, so we can arrange viewings before you land.]][[ More listings: {website}]]",
+                'dm' => "Hi! I saw your post in the group[[ about a place in {area}]]. I'm with {agency}.\n[[Here are some options that match:\n{listings}\n]]Would you like photos or a quick video call?[[ You're arriving {arrival}, so we can arrange viewings before you land.]][[ More listings: {website}]][[\nPhotos, prices and a request form: {site_link}]]",
             ],
             'vi' => [
                 'public_reply' => 'Chào bạn! Bên {agency} đang có vài căn phù hợp[[ ở khu {area}]][[ trong tầm {budget}/tháng]]. Mình gửi hình và thông tin chi tiết qua tin nhắn riêng nhé.',
                 'dm' => "Chào bạn, mình thấy bài bạn đăng trong group[[ tìm căn ở khu {area}]]. Mình bên {agency}.
 [[Đây là vài căn có thể hợp với bạn:
 {listings}
-]]Bạn muốn xem thêm hình hay hẹn đi xem trực tiếp không?[[ Bạn dự kiến đến {arrival}, mình có thể sắp xếp xem căn trước.]][[ Xem thêm căn: {website}]]",
+]]Bạn muốn xem thêm hình hay hẹn đi xem trực tiếp không?[[ Bạn dự kiến đến {arrival}, mình có thể sắp xếp xem căn trước.]][[ Xem thêm căn: {website}]][[\nXem hình, giá và gửi yêu cầu: {site_link}]]",
             ],
             'ru' => [
                 'public_reply' => 'Здравствуйте! У {agency} есть подходящие варианты[[ в районе {area}]][[ в пределах {budget} в месяц]]. Могу прислать фото и подробности в личные сообщения.',
-                'dm' => "Здравствуйте! Увидел ваш пост в группе[[ про жильё в районе {area}]]. Я из {agency}.\n[[Вот варианты, которые могут подойти:\n{listings}\n]]Прислать фото или показать по видеосвязи?[[ Вы приезжаете {arrival}, можем организовать просмотр заранее.]][[ Другие объекты: {website}]]",
+                'dm' => "Здравствуйте! Увидел ваш пост в группе[[ про жильё в районе {area}]]. Я из {agency}.\n[[Вот варианты, которые могут подойти:\n{listings}\n]]Прислать фото или показать по видеосвязи?[[ Вы приезжаете {arrival}, можем организовать просмотр заранее.]][[ Другие объекты: {website}]][[\nФото, цены и форма заявки: {site_link}]]",
             ],
         ],
+    ],
+
+    // App #2: public apartment site + Telegram Mini App (owner decision 2026-11-11).
+    'site' => [
+        'enabled' => (bool) env('SITE_ENABLED', true),
+        'locales' => ['vi', 'en', 'ru'],
+        'default_locale' => env('SITE_DEFAULT_LOCALE', 'vi'),
+        'per_page' => (int) env('SITE_PER_PAGE', 12),
+        // A customer who fills in the form is a hot lead.
+        'inquiry_score' => (int) env('INQUIRY_SCORE', 100),
+        // Contacts typed into the form are stored encrypted and erased after this many days.
+        'contact_retention_days' => (int) env('INQUIRY_CONTACT_DAYS', 90),
+        'inquiry_rate_limit_per_hour' => (int) env('INQUIRY_RATE_LIMIT', 5),
+        // Forms submitted faster than this are treated as bots.
+        'min_fill_seconds' => (int) env('INQUIRY_MIN_FILL_SECONDS', 3),
+        // Telegram Mini App initData older than this is rejected.
+        'webapp_max_age_seconds' => (int) env('TG_WEBAPP_MAX_AGE', 86400),
     ],
 
     'leads' => [

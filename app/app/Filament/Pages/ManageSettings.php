@@ -57,6 +57,7 @@ class ManageSettings extends Page
             'telegram_enabled' => app(TelegramConfig::class)->enabled(),
             'telegram_bot_token' => null,
             'telegram_chat_id' => Setting::get(TelegramConfig::CHAT_ID, ''),
+            'site_contacts' => array_merge(['zalo' => null, 'telegram' => null, 'whatsapp' => null, 'phone' => null], (array) Setting::get('site_contacts', [])),
             'classifier_mode' => app(ClassifierMode::class)->mode(),
             'agency_name' => Setting::get('agency_name'),
             'templates' => TemplateDrafter::templates(),
@@ -109,9 +110,21 @@ class ManageSettings extends Page
                                 ->action(fn () => $this->sendTelegramTest()),
                         ])->columnSpanFull(),
                     ]),
+                Section::make('Website (App #2)')
+                    ->description(fn () => 'Trang căn hộ công khai: '.route('site.index', ['locale' => 'vi'])
+                        .' (cũng là link Telegram Mini App). Chọn căn hiển thị ở Kho căn hộ → "Hiển thị trên website". '
+                        .'Các nút chat bên dưới hiện ở góc trang; để trống nút nào thì ẩn nút đó.')
+                    ->columns(2)
+                    ->collapsible()
+                    ->schema([
+                        TextInput::make('site_contacts.zalo')->label('Zalo (số điện thoại)')->maxLength(30)->regex('/^[\d\s+().-]+$/'),
+                        TextInput::make('site_contacts.telegram')->label('Telegram (username)')->maxLength(40)->regex('/^@?[A-Za-z][A-Za-z0-9_]{3,}$/'),
+                        TextInput::make('site_contacts.whatsapp')->label('WhatsApp (số có mã quốc gia)')->maxLength(30)->regex('/^[\d\s+().-]+$/'),
+                        TextInput::make('site_contacts.phone')->label('Số điện thoại')->maxLength(30)->regex('/^[\d\s+().-]+$/'),
+                    ]),
                 Section::make('Template bản nháp trả lời (khi không dùng AI)')
                     ->description('Dùng ở chế độ keyword, khi chưa có API key, hoặc khi AI hết ngân sách/lỗi ở chế độ Tự động. '
-                        .'Biến: {agency} {website} {area} {budget} {duration} {arrival} {listing} {listing_price} {listings}. '
+                        .'Biến: {agency} {website} {area} {budget} {duration} {arrival} {listing} {listing_price} {listings} {site_link} (link trang căn hộ có mã theo dõi). '
                         .'Đoạn trong [[ ... ]] bị bỏ nếu có biến rỗng. Không nên để link trong trả lời công khai.')
                     ->collapsible()
                     ->columns(2)
@@ -144,6 +157,7 @@ class ManageSettings extends Page
         Setting::put('agency_name', (string) $data['agency_name']);
         Setting::put('reply_templates', collect($data['templates'])->map(fn ($variants) => collect($variants)->map(fn ($t) => (string) $t)->all())->all());
         Setting::put('agency_website', (string) ($data['agency_website'] ?? ''));
+        Setting::put('site_contacts', collect($data['site_contacts'] ?? [])->map(fn ($v) => trim((string) $v))->filter()->all());
 
         $this->data['telegram_bot_token'] = null;
 
