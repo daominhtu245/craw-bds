@@ -102,7 +102,7 @@ Có 2 cách đưa phiên đăng nhập vào profile:
 .\run-local.ps1 threads.session --import cookies.json
 ```
 
-Nạp cookie: đăng nhập trên Chrome thường, dùng extension (ví dụ Cookie-Editor → Export → JSON) hoặc file `cookies.txt` dạng Netscape. Chỉ cookie của `reddit.com` / `threads.com` được nạp, cookie trang khác bị bỏ. Lệnh in tên cookie (không in giá trị) và báo đã đăng nhập hay chưa. **Nạp xong thì xóa file export**: ai có file đó là vào được tài khoản.
+Hướng dẫn từng bước: [docs/COOKIES.md](../docs/COOKIES.md). Tóm tắt: đăng nhập trên Chrome thường, dùng extension (ví dụ Cookie-Editor → Export → JSON) hoặc file `cookies.txt` dạng Netscape. Chỉ cookie của `reddit.com` / `threads.com` được nạp, cookie trang khác bị bỏ. Lệnh in tên cookie (không in giá trị) và báo đã đăng nhập hay chưa. **Nạp xong thì xóa file export**: ai có file đó là vào được tài khoản.
 
 Profile lưu ở `..\data\reddit-profile` và `..\data\threads-profile` (`REDDIT_PROFILE_DIR`, `THREADS_PROFILE_DIR`, đã gitignore).
 
