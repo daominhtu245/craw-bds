@@ -25,7 +25,8 @@ class QuietDigest
     /** @return int Number of leads included in the digest. */
     public function sendIfDue(): int
     {
-        if ($this->quietHours->isQuiet()) {
+        // Turned off or no bot: leave leads unclaimed so they go out once it is on again.
+        if ($this->quietHours->isQuiet() || ! $this->telegram->isConfigured()) {
             return 0;
         }
 

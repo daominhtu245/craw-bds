@@ -41,6 +41,12 @@ class Alerter
 
     private function send(string $text, string $key): bool
     {
+        if (! $this->telegram->isConfigured()) {
+            Log::warning('alert.send_skipped_not_configured', ['alert' => $key]);
+
+            return false;
+        }
+
         try {
             $this->telegram->send($this->telegram->e($text));
 

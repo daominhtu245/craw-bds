@@ -25,6 +25,8 @@ class TelegramNotifier
 
     private const SOURCE_TYPES = ['telegram' => 'Telegram', 'facebook' => 'Facebook', 'forum' => 'Forum', 'reddit' => 'Reddit', 'threads' => 'Threads'];
 
+    public function __construct(private readonly TelegramConfig $config) {}
+
     public function sendLead(Lead $lead): void
     {
         [$text, $buttons] = $this->leadMessage($lead);
@@ -81,23 +83,42 @@ class TelegramNotifier
         return [implode("\n", $lines), $buttons];
     }
 
+    /** Notifications are switched on and have a bot token and chat id (Settings page or .env). */
+    public function isConfigured(): bool
+    {
+        return $this->config->isActive();
+    }
+
     /**
      * @param  list<array{text: string, url: string}>  $buttons
      */
-    public function isConfigured(): bool
-    {
-        return (string) config('leadradar.notify.bot_token') !== '' && (string) config('leadradar.notify.team_chat_id') !== '';
-    }
-
     public function send(string $html, array $buttons = []): void
     {
-        $token = (string) config('leadradar.notify.bot_token');
-        $chatId = (string) config('leadradar.notify.team_chat_id');
-
-        if ($token === '' || $chatId === '') {
-            throw new RuntimeException('TG_BOT_TOKEN / TG_TEAM_CHAT_ID are not configured.');
+        if (! $this->config->enabled()) {
+            throw new RuntimeException('Telegram notifications are turned off on the Settings page.');
         }
 
+        $token = $this->config->botToken();
+        $chatId = $this->config->chatId();
+
+        if ($token === '' || $chatId === '') {
+            throw new RuntimeException('Telegram bot token / chat id are not configured (Settings page or TG_BOT_TOKEN / TG_TEAM_CHAT_ID).');
+        }
+
+        $this->post($token, $chatId, $html, $buttons);
+    }
+
+    /** "Send test" button on the Settings page: uses the values typed in the form, even before saving. */
+    public function sendTest(string $token, string $chatId): void
+    {
+        $this->post($token, $chatId, '✅ Expat Lead Radar: tin thử. Lead mới sẽ được báo vào chat này.');
+    }
+
+    /**
+     * @param  list<array{text: string, url: string}>  $buttons
+     */
+    private function post(string $token, string $chatId, string $html, array $buttons = []): void
+    {
         $payload = [
             'chat_id' => $chatId,
             'text' => $html,
