@@ -23,7 +23,7 @@ class TelegramNotifier
         'unknown' => 'chưa rõ',
     ];
 
-    private const SOURCE_TYPES = ['telegram' => 'Telegram', 'facebook' => 'Facebook', 'forum' => 'Forum', 'reddit' => 'Reddit'];
+    private const SOURCE_TYPES = ['telegram' => 'Telegram', 'facebook' => 'Facebook', 'forum' => 'Forum', 'reddit' => 'Reddit', 'threads' => 'Threads'];
 
     public function sendLead(Lead $lead): void
     {

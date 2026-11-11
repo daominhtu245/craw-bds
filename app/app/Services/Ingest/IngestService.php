@@ -21,8 +21,8 @@ use Illuminate\Support\Facades\Validator;
  */
 class IngestService
 {
-    /** Source types collectors may send (SPEC 6.1). Reddit is not ingested yet. */
-    public const INGEST_SOURCE_TYPES = ['telegram', 'facebook', 'forum'];
+    /** Source types collectors may send (SPEC 6.1; reddit and threads via the owner's browser session, 2026-11-11). */
+    public const INGEST_SOURCE_TYPES = ['telegram', 'facebook', 'forum', 'reddit', 'threads'];
 
     /** @var array<string, Source> */
     private array $sourceCache = [];

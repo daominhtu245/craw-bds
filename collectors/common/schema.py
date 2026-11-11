@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-SourceType = Literal["telegram", "facebook", "forum"]
+SourceType = Literal["telegram", "facebook", "forum", "reddit", "threads"]
 
 
 def author_key(source_type: str, author_id: str | int) -> str:

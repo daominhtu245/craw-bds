@@ -40,6 +40,8 @@ New-Item -ItemType Directory -Force -Path (Join-Path $dataDir 'spool') | Out-Nul
 if (-not $env:SPOOL_DIR) { $env:SPOOL_DIR = Join-Path $dataDir 'spool' }
 if (-not $env:TG_SESSION_PATH) { $env:TG_SESSION_PATH = Join-Path $dataDir 'telegram.session' }
 if (-not $env:FB_PROFILE_DIR) { $env:FB_PROFILE_DIR = Join-Path $dataDir 'facebook-profile' }
+if (-not $env:REDDIT_PROFILE_DIR) { $env:REDDIT_PROFILE_DIR = Join-Path $dataDir 'reddit-profile' }
+if (-not $env:THREADS_PROFILE_DIR) { $env:THREADS_PROFILE_DIR = Join-Path $dataDir 'threads-profile' }
 $env:PYTHONIOENCODING = 'utf-8'
 
 & (Join-Path $PSScriptRoot '.venv\Scripts\python.exe') -m $Module @Rest

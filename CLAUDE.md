@@ -28,7 +28,7 @@ Nguồn sự thật duy nhất là `SPEC.md`. Đọc lại phần liên quan tr�
 - KHÔNG lưu SĐT, email, ảnh, ID người dùng dạng thô. Che SĐT và email trước khi lưu (SPEC mục 15).
 - KHÔNG tạo chức năng export hàng loạt dữ liệu lead.
 - KHÔNG vượt CAPTCHA, không bỏ qua robots.txt, không bỏ qua rate limit.
-  - Ngoại lệ duy nhất do chủ dự án chốt (2026-11-10): `collectors/facebook/browser.py` đọc group Facebook bằng phiên đăng nhập của chủ dự án (dùng cá nhân). Vẫn phải chỉ đọc, chậm, và dừng khi gặp login/checkpoint/CAPTCHA. Không mở rộng ngoại lệ này sang nguồn khác.
+  - Ngoại lệ do chủ dự án chốt: đọc bằng phiên đăng nhập của chủ dự án (dùng cá nhân) cho đúng 3 nguồn: Facebook (`collectors/facebook/browser.py`, 2026-11-10), Reddit (`collectors/reddit/browser.py`) và Threads (`collectors/threads/browser.py`) (2026-11-11; Reddit API cần duyệt theo Responsible Builder Policy). Vẫn phải chỉ đọc, chậm, và dừng khi gặp login/checkpoint/CAPTCHA (`common/browser_session.py`). Không mở rộng ngoại lệ này sang nguồn khác nếu chủ dự án chưa chốt.
 - Test không gọi API thật (Anthropic, Telegram, Apify). Dùng mock và fixture. Chỉ lệnh `leadradar:eval` được gọi AI thật.
 - KHÔNG commit `.env`, file session Telegram hay bất kỳ secret nào. Thêm chúng vào `.gitignore`.
 - Fixture dùng dữ liệu **tự viết**, không copy bài thật của người khác.

@@ -43,7 +43,7 @@ def test_none_fields_are_omitted():
     assert "author_key" not in payload
 
 
-@pytest.mark.parametrize("field,value", [("text", ""), ("source_type", "reddit"), ("external_id", "x" * 192)])
+@pytest.mark.parametrize("field,value", [("text", ""), ("source_type", "instagram"), ("external_id", "x" * 192)])
 def test_validation(field, value):
     with pytest.raises(ValidationError):
         make(**{field: value})

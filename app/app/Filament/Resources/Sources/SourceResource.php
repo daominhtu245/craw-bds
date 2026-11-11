@@ -47,10 +47,12 @@ class SourceResource extends Resource
                 Select::make('type')->label('Loại')->options(SourceType::class)->required(),
                 TextInput::make('name')->label('Tên hiển thị')->required()->maxLength(255),
                 TextInput::make('identifier')->label('Định danh (username / URL)')->required()->maxLength(255)
-                    ->helperText('Telegram: username hoặc ID chat. Facebook/Forum: URL.'),
+                    ->helperText('Telegram: username hoặc ID chat. Facebook/Forum: URL. Reddit: tên subreddit, không có r/ (vd: danang). Threads: từ khóa tìm kiếm (vd: da nang apartment).'),
                 TextInput::make('language_hint')->label('Ngôn ngữ chính')->maxLength(8)->placeholder('en, ru…'),
                 Textarea::make('rules_note')->label('Luật của group (hiển thị cho sale)')->rows(3)->columnSpanFull(),
                 TextInput::make('meta.maxItems')->label('Số bài tối đa mỗi lần (Facebook)')->numeric()->minValue(1)->maxValue(500),
+                TextInput::make('meta.query')->label('Chỉ lấy bài khớp từ khóa (Reddit, tùy chọn)')->maxLength(255)
+                    ->placeholder('vd: da nang rent')->helperText('Dùng cho subreddit rộng như VietNam: chỉ đọc kết quả tìm kiếm mới nhất trong subreddit.'),
                 Toggle::make('meta.important')->label('Quan trọng: cảnh báo nếu 24 giờ không có item mới'),
                 Toggle::make('is_active')->label('Đang bật')->default(true),
             ]);

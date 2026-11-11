@@ -127,6 +127,16 @@ class IngestApiTest extends TestCase
         $this->assertDatabaseCount('raw_items', 1);
     }
 
+    public function test_reddit_and_threads_items_are_accepted(): void
+    {
+        $this->postItems([
+            $this->item(['source_type' => 'reddit', 'source_identifier' => 'danang', 'external_id' => 't3_abc', 'url' => 'https://www.reddit.com/r/danang/comments/abc/x/']),
+            $this->item(['source_type' => 'threads', 'source_identifier' => 'da nang apartment', 'external_id' => '123', 'url' => 'https://www.threads.com/@someone/post/ABC']),
+        ])->assertOk()->assertJson(['accepted' => 2, 'rejected' => []]);
+
+        $this->assertSame(['reddit', 'threads'], Source::orderBy('id')->get()->map(fn ($s) => $s->type->value)->all());
+    }
+
     public function test_unknown_source_is_auto_created_and_last_item_at_updated(): void
     {
         $this->postItems([

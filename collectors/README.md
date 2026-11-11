@@ -89,6 +89,29 @@ Trên dashboard, vào **Nguồn**, thêm source loại `facebook` với `identif
 
 Chế độ này chỉ chạy local trên Windows (cần cửa sổ để đăng nhập); chưa đưa vào Docker.
 
+## Reddit và Threads bằng phiên đăng nhập (đang làm)
+
+> **Chỉ dùng cá nhân.** Chủ dự án chốt ngày 2026-11-11 (Reddit Data API cần được duyệt theo Responsible Builder Policy). Trái điều khoản và robots.txt của hai trang, tài khoản có thể bị khóa. Nên dùng **tài khoản phụ**. Quy tắc giống Facebook, code dùng chung ở `common/browser_session.py`.
+
+Có 2 cách đưa phiên đăng nhập vào profile:
+
+```powershell
+.\run-local.ps1 reddit.session                          # cửa sổ mở: tự đăng nhập, thấy feed thì đóng
+.\run-local.ps1 reddit.session --import cookies.json    # hoặc nạp cookie xuất từ Chrome của bạn
+.\run-local.ps1 threads.session                         # tương tự, đăng nhập bằng tài khoản Instagram
+.\run-local.ps1 threads.session --import cookies.json
+```
+
+Nạp cookie: đăng nhập trên Chrome thường, dùng extension (ví dụ Cookie-Editor → Export → JSON) hoặc file `cookies.txt` dạng Netscape. Chỉ cookie của `reddit.com` / `threads.com` được nạp, cookie trang khác bị bỏ. Lệnh in tên cookie (không in giá trị) và báo đã đăng nhập hay chưa. **Nạp xong thì xóa file export**: ai có file đó là vào được tài khoản.
+
+Profile lưu ở `..\data\reddit-profile` và `..\data\threads-profile` (`REDDIT_PROFILE_DIR`, `THREADS_PROFILE_DIR`, đã gitignore).
+
+Nguồn trên dashboard:
+- `reddit`: `identifier` là tên subreddit, không có `r/` (ví dụ `danang`). Subreddit rộng như `VietNam` thì đặt thêm "Chỉ lấy bài khớp từ khóa" (`meta.query`).
+- `threads`: `identifier` là từ khóa tìm kiếm (ví dụ `da nang apartment`, `Дананг квартира`).
+
+**[VERIFY]** `reddit.browser` và `threads.browser` chưa viết: cần một phiên đăng nhập thật để xem định dạng dữ liệu trước.
+
 ## Expat.com forum (Phase 5)
 
 - robots.txt được đọc lại ở **mỗi vòng**. Nếu mục forum bị chặn, collector dừng (exit code 2) và ghi lỗi. Kiểm tra ngày 2026-11-09: `/en/forum/asia/vietnam/da-nang/` được phép.

@@ -10,6 +10,7 @@ enum SourceType: string implements HasLabel
     case Facebook = 'facebook';
     case Forum = 'forum';
     case Reddit = 'reddit';
+    case Threads = 'threads';
 
     /** @return list<string> */
     public static function values(): array

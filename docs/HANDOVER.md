@@ -39,6 +39,7 @@ Tài liệu này dành cho người (hoặc phiên Claude Code mới) tiếp t�
 | `191572c` | Sửa crawler Expat.com (tách phần trích dẫn), sửa khớp keyword ngắn |
 | `d67517e`, `414ca74` | `collectors/run-local.ps1`, `.env.local.example` |
 | (2026-11-10) | `package-lock.json`; collector Facebook bằng phiên trình duyệt (`facebook.session`, `facebook.browser`) |
+| (2026-11-11) | Negative keyword tin chủ nhà tiếng Anh; alias "хай чау"; nền móng Reddit/Threads bằng phiên trình duyệt: `common/browser_session.py`, `reddit.session`, `threads.session` (đăng nhập tay hoặc `--import` cookie), source type `threads`, ingest nhận `reddit`/`threads` |
 
 ## 3. Trạng thái nghiệm thu theo SPEC mục 19
 
@@ -138,7 +139,8 @@ Chạy (Windows): `.\run-local.ps1 forum.expat_com --once`, `.\run-local.ps1 tel
 4. **AI**: khi có `ANTHROPIC_API_KEY`, chạy `php artisan leadradar:eval` (tốn phí, ước tính vài cent cho 60 mẫu). So sánh với `--engine=keyword`.
 5. **Facebook**: phiên trình duyệt đã chạy được (2026-11-11). Còn lại: thêm group có người thuê thật, theo dõi log `facebook group read` (sửa `facebook/extract.py` nếu `stories` > 0 mà `count` = 0), đã thêm 11 negative keyword tiếng Anh cho tin chủ nhà (`KeywordSeeder`). Tin rao có câu tu từ "Looking for an apartment…?" vẫn lọt prefilter vì positive mạnh luôn thắng negative (SPEC 8 bước 6); classifier xử lý tiếp. (Hoặc Apify: `facebook.run --once` khi có `APIFY_TOKEN`.)
 6. **Chất lượng keyword**: theo dõi lead "Không hợp lệ" hoặc bị sót trên dữ liệu thật để bổ sung keyword. Bài mơ hồ (ví dụ "I am thinking about living in Da Nang…") keyword không bắt được; AI làm tốt hơn.
-7. **Triển khai VPS**: theo [docs/DEPLOY.md](DEPLOY.md).
+7. **Reddit và Threads** (chủ dự án chốt 2026-11-11, xem CLAUDE.md): đã có phần đăng nhập/nạp cookie. Còn lại: chủ dự án đăng nhập (`reddit.session`, `threads.session`), soi dữ liệu trang thật [VERIFY], rồi viết `reddit/browser.py` + `extract.py` (đọc theo subreddit, `meta.query` tùy chọn) và `threads/browser.py` + `extract.py` (đọc kết quả tìm kiếm theo từ khóa), test bằng fixture tự viết.
+8. **Triển khai VPS**: theo [docs/DEPLOY.md](DEPLOY.md).
 
 ## 8. Lưu ý kỹ thuật cho người code tiếp
 
